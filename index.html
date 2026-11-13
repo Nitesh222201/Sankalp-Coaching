@@ -3,719 +3,216 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#1e3a8a">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#102b63">
 <title>संकल्प कोचिंग क्लासेस</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}
-body{font-family:Arial,sans-serif;background:#f1f5f9}
-.hidden{display:none!important}
-.card{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:14px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0;font-size:14px}
-button{cursor:pointer}
-.btn{padding:10px 14px;border-radius:10px;font-weight:bold;color:white}
-.blue{background:#1e3a8a}.green{background:#059669}.red{background:#dc2626}
-.tab{padding:9px 12px;border-radius:10px;font-size:12px;font-weight:bold;white-space:nowrap}
-.active{background:#1e3a8a;color:white}
-nav{overflow-x:auto}
+:root{--navy:#102b63;--gold:#f4c542;--bg:#f3f6fb;--ink:#17243b;--muted:#667085;--line:#e4e9f2;--green:#13845b;--red:#c43d4b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,"Noto Sans Devanagari",sans-serif}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:10px;padding:10px 14px;background:var(--navy);color:#fff;font-weight:700;cursor:pointer}
+button.secondary{background:#e9eef8;color:var(--navy)}button.danger{background:#fff0f1;color:var(--red)}button.good{background:var(--green)}
+button:disabled{opacity:.5;cursor:not-allowed}input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+label{font-size:13px;font-weight:700;display:block;margin:9px 0 5px}.muted{color:var(--muted);font-size:13px}.hidden{display:none!important}
+.wrap{max-width:1100px;margin:auto;padding:16px}.brand{background:linear-gradient(130deg,#102b63,#1c468d);color:#fff;padding:22px;border-radius:0 0 22px 22px}
+.brand h1{margin:0;color:var(--gold);font-size:25px}.brand p{margin:6px 0 0;font-size:13px}
+.panel,.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 4px 16px #17243b08}
+.login{max-width:460px;margin:30px auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.between{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:7px;overflow:auto;padding:8px 0}.tabs button{white-space:nowrap}.tabs button.active{background:var(--gold);color:#17243b}
+.stat{font-size:25px;font-weight:800;color:var(--navy)}.student{display:flex;align-items:center;gap:12px}
+.avatar{width:52px;height:52px;border-radius:50%;object-fit:cover;background:#e7edf8;display:grid;place-items:center;font-weight:800;color:var(--navy);flex-shrink:0}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:12px}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;background:#edf2fb;color:var(--navy);font-size:12px;font-weight:700}
+.badge.ok{background:#e6f7ef;color:var(--green)}.badge.no{background:#fff0f1;color:var(--red)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{padding:7px 10px;font-size:12px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#17243b;color:white;padding:12px 18px;border-radius:12px;z-index:20;display:none;max-width:90%}
+#busy{position:fixed;inset:0;background:#ffffffc9;z-index:30;display:none;place-items:center;font-weight:800;color:var(--navy)}
+small.hint{color:var(--muted)}.notice{padding:12px;border-radius:12px;background:#fff8df;border:1px solid #f4df9b;font-size:13px}
+@media(max-width:600px){.wrap{padding:10px}.brand{padding:18px}.brand h1{font-size:21px}table{font-size:12px}th,td{padding:7px}}
 </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen pb-24">
-
-<div id="loader" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center text-white font-bold">कृपया प्रतीक्षा करें...</div>
-<div id="toast" class="hidden fixed top-3 left-3 right-3 z-50 bg-slate-900 text-white p-3 rounded-xl text-center text-sm"></div>
-
-<!-- LOGIN -->
-<section id="login" class="min-h-screen flex items-center justify-center p-5">
-<div class="card w-full space-y-4 shadow-lg">
-<div class="text-center">
-<div class="text-5xl">🎓</div>
-<h1 class="text-2xl font-black text-blue-900 mt-2">संकल्प कोचिंग क्लासेस</h1>
-<p class="text-xs text-slate-500">Haripur Bazar, Badlapur Road, Jaunpur</p>
-<p class="text-sm font-bold mt-2">Welcome to Coaching Portal</p>
-</div>
-<div class="grid grid-cols-2 gap-2">
-<button class="btn blue" onclick="showLogin('owner')">Owner Login</button>
-<button class="btn green" onclick="showLogin('parent')">Parent Login</button>
-</div>
-<div id="owner-login" class="space-y-2">
-<h2 class="font-bold">Owner Login</h2>
-<input id="owner-email" type="email" value="ashish@gmail.com" placeholder="Owner Email">
-<input id="owner-password" type="password" placeholder="Password">
-<button class="btn blue w-full" onclick="ownerLogin()">Login</button>
-</div>
-<div id="parent-login" class="hidden space-y-2">
-<h2 class="font-bold">Parent Login</h2>
-<input id="parent-phone" type="tel" placeholder="10 digit mobile number">
-<button class="btn green w-full" onclick="sendParentOTP()">Send OTP</button>
-<div id="parent-verify" class="hidden">
-<input id="parent-otp" placeholder="Enter OTP">
-<button class="btn blue w-full" onclick="verifyParentOTP()">Verify OTP</button>
-</div>
-<p class="text-xs text-slate-500">Registered mobile number पर OTP आएगा।</p>
-</div>
-</div>
-</section>
-
-<!-- OWNER -->
-<section id="owner" class="hidden">
-<header class="bg-blue-900 text-white p-4 rounded-b-3xl sticky top-0 z-20">
-<div class="flex justify-between items-center">
-<div>
-<h1 class="font-black text-yellow-300">संकल्प कोचिंग क्लासेस</h1>
-<p class="text-xs">संचालक: Ashish Prajapati</p>
-</div>
-<button class="btn red" onclick="logout()">Logout</button>
-</div>
+<body>
+<div id="busy">कृपया प्रतीक्षा करें…</div><div id="toast"></div>
+<header class="brand">
+ <div class="wrap">
+  <h1 id="coachingTitle">संकल्प कोचिंग क्लासेस</h1>
+  <p>हरीपुर बाजार, बदलापुर रोड, जौनपुर · कक्षा 1–8</p>
+  <p>सुबह 6–9 बजे | शाम 3:20–6 बजे · संचालक: आशीष प्रजापति · 9569978125</p>
+ </div>
 </header>
 
-<div class="p-3 space-y-3">
-<div class="grid grid-cols-2 gap-2">
-<div class="card"><p class="text-xs">Total Students</p><b id="total-students" class="text-xl">0</b></div>
-<div class="card"><p class="text-xs">Paid Fees</p><b id="collected" class="text-xl text-green-600">₹0</b></div>
-<div class="card"><p class="text-xs">Pending Fees</p><b id="pending" class="text-xl text-red-600">₹0</b></div>
-<div class="card"><p class="text-xs">Enquiries</p><b id="total-enquiries" class="text-xl">0</b></div>
-</div>
-
-<nav class="flex gap-2 bg-white p-2 rounded-xl sticky top-20 z-10">
-<button class="tab active" onclick="tab('students',this)">Students</button>
-<button class="tab" onclick="tab('fees',this)">Fees</button>
-<button class="tab" onclick="tab('attendance',this)">Attendance</button>
-<button class="tab" onclick="tab('homework',this)">Homework</button>
-<button class="tab" onclick="tab('tests',this)">Tests</button>
-<button class="tab" onclick="tab('events',this)">Events</button>
-<button class="tab" onclick="tab('settings',this)">Settings</button>
-</nav>
-
-<!-- STUDENTS -->
-<div id="students" class="space-y-3">
-<div class="card space-y-2">
-<h2 class="font-black text-blue-900">➕ Add / Edit Student</h2>
-<input id="student-id" type="hidden">
-<input id="st-name" placeholder="Student Full Name">
-<input id="st-reg" placeholder="Registration Number">
-<input id="st-roll" placeholder="Roll Number">
-<select id="st-class">
-<option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
-<option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
-</select>
-<select id="st-batch">
-<option>Morning Batch (6-9 AM)</option>
-<option>Evening Batch (3:20-6 PM)</option>
-</select>
-<input id="st-parent" placeholder="Parent Name">
-<input id="st-phone" type="tel" placeholder="Parent Mobile Number">
-<input id="st-fee" type="number" placeholder="Monthly Fee">
-<select id="st-status"><option>Pending</option><option>Paid</option></select>
-<label class="text-xs font-bold">Student Photo</label>
-<input id="st-photo" type="file" accept="image/*">
-<button class="btn blue w-full" onclick="saveStudent()">Save Student</button>
-</div>
-<h2 class="font-bold">All Students</h2>
-<div id="student-list" class="space-y-2"></div>
-</div>
-
-<!-- FEES -->
-<div id="fees" class="hidden space-y-2">
-<div class="card"><h2 class="font-black">💰 Fee Management</h2><p class="text-xs text-slate-500">Paid / Pending और WhatsApp Reminder</p></div>
-<div id="fee-list" class="space-y-2"></div>
-</div>
-
-<!-- ATTENDANCE -->
-<div id="attendance" class="hidden space-y-3">
-<div class="card space-y-2">
-<h2 class="font-black">📋 Class Attendance</h2>
-<select id="att-class" onchange="renderAttendance()">
-<option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
-<option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
-</select>
-<input id="att-date" type="date">
-<div id="attendance-list" class="space-y-2"></div>
-<button class="btn blue w-full" onclick="saveAttendance()">Save Attendance</button>
-</div>
-</div>
-
-<!-- HOMEWORK -->
-<div id="homework" class="hidden space-y-3">
-<div class="card space-y-2">
-<h2 class="font-black">📚 Upload Homework</h2>
-<select id="hw-class">
-<option>Class 1</option><option>Class 2</option><option>Class 3</option><option>Class 4</option>
-<option>Class 5</option><option>Class 6</option><option>Class 7</option><option>Class 8</option>
-</select>
-<textarea id="hw-title" placeholder="Homework / Subject / Chapter"></textarea>
-<input id="hw-file" type="file" accept="image/*,application/pdf">
-<button class="btn green w-full" onclick="uploadHomework()">Publish Homework</button>
-</div>
-<div id="homework-list" class="space-y-2"></div>
-</div>
-
-<!-- TESTS -->
-<div id="tests" class="hidden space-y-3">
-<div class="card space-y-2">
-<h2 class="font-black">📊 Weekly Test Marks</h2>
-<select id="test-student"></select>
-<input id="test-subject" placeholder="Subject / Test Name">
-<input id="test-total" type="number" placeholder="Total Marks">
-<input id="test-obtained" type="number" placeholder="Obtained Marks">
-<button class="btn blue w-full" onclick="saveTest()">Save Test</button>
-</div>
-<div id="test-list" class="space-y-2"></div>
-</div>
-
-<!-- EVENTS -->
-<div id="events" class="hidden space-y-3">
-<div class="card space-y-2">
-<h2 class="font-black">🎉 Festival / Holiday Notice</h2>
-<input id="event-title" placeholder="Event Title">
-<textarea id="event-message" placeholder="Notice Message"></textarea>
-<label class="text-xs">Holiday Start</label><input id="event-start" type="date">
-<label class="text-xs">Holiday End</label><input id="event-end" type="date">
-<label class="text-xs">Reopen Date</label><input id="event-reopen" type="date">
-<button class="btn blue w-full" onclick="saveEvent()">Publish Notice</button>
-</div>
-<div id="event-list" class="space-y-2"></div>
-</div>
-
-<!-- SETTINGS -->
-<div id="settings" class="hidden space-y-3">
-<div class="card space-y-2">
-<h2 class="font-black">⚙️ Coaching Settings</h2>
-<input id="set-name" placeholder="Coaching Name">
-<input id="set-teacher" placeholder="Teacher Name">
-<input id="set-address" placeholder="Address">
-<input id="set-email" placeholder="Owner Email">
-<input id="set-phone" placeholder="Owner Mobile">
-<input id="set-upi" placeholder="UPI ID">
-<input id="set-upi-mobile" placeholder="UPI Registered Mobile Number">
-<input id="set-provider" placeholder="UPI App (PhonePe / GPay)">
-<button class="btn green w-full" onclick="saveSettings()">Save Settings</button>
-</div>
-</div>
-</div>
+<main class="wrap">
+<section id="loginView" class="panel login">
+ <h2>लॉगिन</h2>
+ <p class="muted">Admin और Parent अपने रजिस्टर्ड Gmail तथा पासवर्ड से लॉगिन करें।</p>
+ <label>Gmail</label><input id="loginEmail" type="email" autocomplete="username" placeholder="registered@gmail.com">
+ <label>पासवर्ड</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="पासवर्ड">
+ <button id="loginBtn" style="width:100%;margin-top:14px">Login करें</button>
+ <p class="muted">मोबाइल नंबर से लॉगिन तथा Admin द्वारा Parent अकाउंट बनाने के लिए सुरक्षित Edge Function जोड़ना आवश्यक है।</p>
 </section>
 
-<!-- PARENT PORTAL -->
-<section id="parent" class="hidden p-3 space-y-3">
-<header class="bg-blue-950 text-white p-4 rounded-2xl">
-<div class="flex justify-between">
-<div><h2 class="font-black text-yellow-300">संकल्प कोचिंग क्लासेस</h2><p class="text-xs">Haripur Bazar, Jaunpur</p></div>
-<button class="btn red" onclick="logout()">Exit</button>
-</div>
-</header>
+<section id="appView" class="hidden">
+ <div class="between panel">
+  <div><b id="welcome">Dashboard</b><div class="muted" id="roleLabel"></div></div>
+  <button class="secondary" id="logoutBtn">Logout</button>
+ </div>
+ <nav class="tabs" id="navTabs">
+  <button data-tab="dashboard" class="active">होम</button>
+  <button data-tab="students" class="adminOnly">Students</button>
+  <button data-tab="attendance" class="adminOnly">Attendance</button>
+  <button data-tab="homework" class="adminOnly">Homework</button>
+  <button data-tab="tests" class="adminOnly">Tests</button>
+  <button data-tab="events" class="adminOnly">Events</button>
+  <button data-tab="fees" class="adminOnly">Fees</button>
+  <button data-tab="parent">मेरी जानकारी</button>
+ </nav>
 
-<div class="card space-y-2">
-<h2 class="font-black text-blue-900">🪪 Student ID Card</h2>
-<img id="parent-photo" class="hidden w-24 h-28 object-cover rounded-xl">
-<p><b>Name:</b> <span id="parent-name"></span></p>
-<p><b>Registration:</b> <span id="parent-reg"></span></p>
-<p><b>Roll No:</b> <span id="parent-roll"></span></p>
-<p><b>Class:</b> <span id="parent-class"></span></p>
-<p><b>Batch:</b> <span id="parent-batch"></span></p>
-<p><b>Parent Mobile:</b> <span id="parent-mobile"></span></p>
-<p class="text-right font-bold">Ashish Prajapati<br>Director</p>
-</div>
+ <section id="tab-dashboard" class="tabPage">
+  <div class="grid">
+   <div class="card"><div class="muted">कुल विद्यार्थी</div><div class="stat" id="statStudents">0</div></div>
+   <div class="card adminOnly"><div class="muted">Pending फीस अनुरोध</div><div class="stat" id="statPending">0</div></div>
+  </div>
+  <div class="panel"><h3>सूचनाएँ / Events</h3><div id="dashboardEvents" class="muted">लोड हो रहा है…</div></div>
+  <div class="panel"><h3>कक्षाएँ</h3><div class="row" id="classShortcuts"></div></div>
+ </section>
 
-<div class="card"><h2 class="font-black">📚 Homework</h2><div id="parent-homework" class="space-y-2"></div></div>
-<div class="card"><h2 class="font-black">📋 Attendance History</h2><div id="parent-attendance" class="space-y-2"></div></div>
-<div class="card">
-<h2 class="font-black">💰 Monthly Fee</h2>
-<p class="text-2xl font-black" id="parent-fee"></p>
-<p id="parent-fee-status"></p>
-<p id="upi-number" class="text-sm"></p>
-<button class="btn blue w-full mt-2" onclick="payUPI()">Pay Fee via UPI</button>
-<p class="text-xs text-slate-500 mt-2">भुगतान के बाद transaction की पुष्टि coaching से करवाएं।</p>
-</div>
-<div class="card"><h2 class="font-black">📊 Weekly Tests</h2><div id="parent-tests"></div></div>
+ <section id="tab-students" class="tabPage hidden adminOnly">
+  <div class="panel">
+   <h3 id="studentFormTitle">नया विद्यार्थी जोड़ें</h3>
+   <input id="studentId" type="hidden">
+   <div class="grid">
+    <div><label>विद्यार्थी का नाम *</label><input id="studentName" placeholder="पूरा नाम"></div>
+    <div><label>कक्षा *</label><select id="studentClass"></select></div>
+    <div><label>पिता का नाम</label><input id="fatherName"></div>
+    <div><label>माता का नाम</label><input id="motherName"></div>
+    <div><label>Parent Gmail</label><input id="parentEmail" type="email"></div>
+    <div><label>Parent मोबाइल</label><input id="parentPhone" inputmode="numeric" maxlength="10"></div>
+    <div><label>मासिक फीस (₹)</label><input id="monthlyFee" type="number" min="0" value="500"></div>
+    <div><label>विद्यार्थी फोटो</label><input id="studentPhoto" type="file" accept="image/*"></div>
+   </div>
+   <p class="muted">Gmail या मोबाइल में से कम-से-कम एक जरूरी है। एक Parent खाते से कई बच्चों को जोड़ा जा सकता है।</p>
+   <div class="row"><button id="saveStudentBtn">विद्यार्थी Save करें</button><button class="secondary" id="clearStudentBtn">फॉर्म साफ करें</button></div>
+   <div class="notice" style="margin-top:12px">Parent का Auth अकाउंट/पासवर्ड बनाने के लिए Edge Function चाहिए। अभी विद्यार्थी रिकॉर्ड बनाया जा सकता है; Parent अकाउंट अपने आप नहीं बनेगा।</div>
+  </div>
+  <div class="panel"><div class="between"><h3>विद्यार्थी सूची</h3><select id="studentFilter" style="max-width:150px"></select></div><div id="studentsList"></div></div>
+ </section>
+
+ <section id="tab-attendance" class="tabPage hidden adminOnly">
+  <div class="panel">
+   <div class="grid"><div><label>कक्षा</label><select id="attendanceClass"></select></div><div><label>तारीख</label><input id="attendanceDate" type="date"></div></div>
+   <div id="attendanceList"></div><div class="row"><button id="saveAttendanceBtn">Attendance Save करें</button><button class="secondary" id="attendancePrintBtn">PDF / Print</button></div>
+  </div>
+ </section>
+
+ <section id="tab-homework" class="tabPage hidden adminOnly">
+  <div class="panel"><h3>Homework Publish करें</h3>
+   <div class="grid"><div><label>कक्षा</label><select id="homeworkClass"></select></div><div><label>विषय</label><input id="homeworkSubject" placeholder="गणित / विज्ञान"></div></div>
+   <label>Homework विवरण *</label><textarea id="homeworkDescription" rows="3"></textarea>
+   <label>फोटो / PDF</label><input id="homeworkFile" type="file" accept="image/*,application/pdf">
+   <button id="publishHomeworkBtn" style="margin-top:12px">Publish Homework</button>
+  </div>
+  <div class="panel"><h3>पुराना Homework</h3><div id="homeworkList"></div></div>
+ </section>
+
+ <section id="tab-tests" class="tabPage hidden adminOnly">
+  <div class="panel"><h3>Test Marks जोड़ें</h3>
+   <label>विद्यार्थी</label><select id="testStudent"></select>
+   <div class="grid"><div><label>Test का नाम</label><input id="testTitle"></div><div><label>विषय</label><input id="testSubject"></div>
+   <div><label>कुल अंक</label><input id="testTotal" type="number" value="100"></div><div><label>प्राप्त अंक</label><input id="testObtained" type="number"></div></div>
+   <button id="saveTestBtn" style="margin-top:12px">Marks Save करें</button>
+  </div><div class="panel"><h3>Results</h3><div id="testsList"></div></div>
+ </section>
+
+ <section id="tab-events" class="tabPage hidden adminOnly">
+  <div class="panel"><h3>Notice / Holiday</h3>
+   <label>शीर्षक</label><input id="eventTitle">
+   <label>विवरण</label><textarea id="eventDescription" rows="3"></textarea>
+   <div class="grid"><div><label>तारीख</label><input id="eventDate" type="date"></div><div><label>प्रकार</label><select id="eventType"><option value="notice">Notice</option><option value="holiday">Holiday</option><option value="event">Event</option></select></div></div>
+   <button id="saveEventBtn" style="margin-top:12px">Notice Publish करें</button>
+  </div><div class="panel"><h3>Published Notices</h3><div id="eventsList"></div></div>
+ </section>
+
+ <section id="tab-fees" class="tabPage hidden adminOnly">
+  <div class="panel"><h3>Fee Manager</h3><div class="grid"><div><label>कक्षा</label><select id="feeClass"></select></div><div><label>महीना</label><input id="feeMonth" type="month"></div></div><div id="feeStudents"></div></div>
+  <div class="panel"><h3>Payment Verification Requests</h3><div id="feeRequests"></div></div>
+  <div class="panel"><h3>UPI Settings</h3><div class="grid"><div><label>UPI ID (VPA)</label><input id="settingsUpi" placeholder="name@bank"></div><div><label>UPI मोबाइल</label><input id="settingsPhone"></div></div><button id="saveSettingsBtn" style="margin-top:10px">UPI Save करें</button></div>
+ </section>
+
+ <section id="tab-parent" class="tabPage hidden">
+  <div class="panel"><h3>मेरे विद्यार्थी</h3><div id="parentChildren"></div></div>
+  <div class="panel"><h3>Attendance</h3><div id="parentAttendance"></div></div>
+  <div class="panel"><h3>Homework</h3><div id="parentHomework"></div></div>
+  <div class="panel"><h3>Test Results</h3><div id="parentTests"></div></div>
+  <div class="panel"><h3>Fees और Payment</h3><div id="parentFees"></div></div>
+  <div class="panel"><h3>Payment Screenshot जमा करें</h3>
+   <label>विद्यार्थी</label><select id="paymentStudent"></select>
+   <label>राशि (₹)</label><input id="paymentAmount" type="number" min="1">
+   <label>UTR / Transaction ID</label><input id="paymentUtr">
+   <label>Payment तारीख</label><input id="paymentDate" type="datetime-local">
+   <label>Screenshot</label><input id="paymentScreenshot" type="file" accept="image/*">
+   <button id="submitPaymentBtn" style="margin-top:10px">Verification के लिए भेजें</button>
+   <p class="muted">Screenshot जमा होने से फीस Paid नहीं होगी। Admin UTR/बैंक रिकॉर्ड जाँचकर पुष्टि करेगा।</p>
+  </div>
+ </section>
 </section>
+</main>
+<div id="downloadPopup" class="hidden"></div>
 
 <script>
-const SUPABASE_URL="https://dwpmeaxovlfkamcgdrxs.supabase.co";
-const SUPABASE_KEY="sb_publishable_lU5D0hXiVIvdc-SxF3z2xg_EiEblrN7";
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-let students=[],settings={},currentStudent=null,currentUser=null,attendanceMap={};
-const $=id=>document.getElementById(id);
-
-function loader(v){$('loader').classList.toggle('hidden',!v)}
-function toast(m){
- $('toast').textContent=m;$('toast').classList.remove('hidden');
- setTimeout(()=>$('toast').classList.add('hidden'),3000);
-}
-function esc(v){
- return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-function today(){
- const d=new Date();
- return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
-}
-function showLogin(type){
- $('owner-login').classList.toggle('hidden',type!=='owner');
- $('parent-login').classList.toggle('hidden',type!=='parent');
-}
-function tab(name,button){
- ['students','fees','attendance','homework','tests','events','settings'].forEach(x=>$(x).classList.add('hidden'));
- $(name).classList.remove('hidden');
- document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
- button.classList.add('active');
-}
-
-async function ownerLogin(){
- const email=$('owner-email').value.trim(),password=$('owner-password').value;
- if(!email||!password)return toast('Email और Password डालें');
- loader(true);
- const {data,error}=await db.auth.signInWithPassword({email,password});
- loader(false);
- if(error)return toast(error.message);
- currentUser=data.user;
- const {data:profile,error:pe}=await db.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
- if(pe||!profile||profile.role!=='owner'){
-  await db.auth.signOut();return toast('यह Owner Account नहीं है');
- }
- $('login').classList.add('hidden');$('owner').classList.remove('hidden');
- await loadSettings();await loadOwner();
-}
-
-async function sendParentOTP(){
- let phone=$('parent-phone').value.replace(/\D/g,'');
- if(phone.length===10)phone='+91'+phone;
- else if(!phone.startsWith('+'))phone='+'+phone;
- if(phone.length<11)return toast('सही मोबाइल नंबर डालें');
- loader(true);
- const {error}=await db.auth.signInWithOtp({phone});
- loader(false);
- if(error)return toast(error.message);
- $('parent-verify').classList.remove('hidden');
- toast('OTP भेज दिया गया है');
-}
-async function verifyParentOTP(){
- let phone=$('parent-phone').value.replace(/\D/g,'');
- phone=phone.length===10?'+91'+phone:'+'+phone;
- const {data,error}=await db.auth.verifyOtp({phone,token:$('parent-otp').value.trim(),type:'sms'});
- if(error)return toast(error.message);
- currentUser=data.user;
- loader(true);
- const {data:stu,error:se}=await db.from('students').select('*').eq('parent_user_id',currentUser.id).maybeSingle();
- loader(false);
- if(se||!stu)return toast('Parent Account Student से link नहीं है। Coaching से संपर्क करें।');
- currentStudent=stu;
- await loadSettings();
- $('login').classList.add('hidden');$('parent').classList.remove('hidden');
- await loadParent();
-}
-async function logout(){
- await db.auth.signOut();
- location.reload();
-}
-
-async function loadSettings(){
- const {data,error}=await db.from('app_settings').select('*').eq('id',1).single();
- if(error){toast(error.message);return}
- settings=data||{};
- const fields={
-  'set-name':'coaching_name','set-teacher':'teacher_name',
-  'set-address':'coaching_address','set-email':'owner_email',
-  'set-phone':'owner_phone','set-upi':'upi_id',
-  'set-upi-mobile':'upi_mobile','set-provider':'upi_provider'
- };
- Object.entries(fields).forEach(([id,key])=>{if($(id))$(id).value=settings[key]||''});
-}
-
-async function loadOwner(){
- loader(true);
- const results=await Promise.all([
-  db.from('students').select('*').order('created_at',{ascending:false}),
-  db.from('enquiries').select('*').order('created_at',{ascending:false}),
-  db.from('homework').select('*').order('created_at',{ascending:false}),
-  db.from('weekly_tests').select('*,students(name)').order('test_date',{ascending:false}),
-  db.from('coaching_events').select('*').order('created_at',{ascending:false})
- ]);
- loader(false);
- for(const r of results){if(r.error)return toast(r.error.message)}
- students=results[0].data||[];
- $('total-students').textContent=students.length;
- $('total-enquiries').textContent=(results[1].data||[]).length;
- $('collected').textContent='₹'+students.filter(s=>s.fee_status==='Paid').reduce((a,s)=>a+Number(s.monthly_fee||0),0);
- $('pending').textContent='₹'+students.filter(s=>s.fee_status!=='Paid').reduce((a,s)=>a+Number(s.monthly_fee||0),0);
- renderStudents();renderFees();renderHomework(results[2].data||[]);
- renderTests(results[3].data||[]);renderEvents(results[4].data||[]);
- $('test-student').innerHTML=students.map(s=>`<option value="${s.id}">${esc(s.name)} - ${esc(s.student_class)}</option>`).join('');
- await renderAttendance();
-}
-
-function renderStudents(){
- $('student-list').innerHTML=students.map(s=>`
- <div class="card flex justify-between items-center gap-2">
- <div><b>${esc(s.name)}</b><p class="text-xs">${esc(s.student_class)} • ${esc(s.subject_batch)}</p>
- <p class="text-xs">Reg: ${esc(s.reg_no)} • Roll: ${esc(s.roll_no)}</p>
- <p class="text-xs">Fee ₹${Number(s.monthly_fee||0)} • ${esc(s.fee_status)}</p></div>
- <div class="flex flex-col gap-1">
- <button class="btn blue" onclick="editStudent('${s.id}')">Edit</button>
- <button class="btn red" onclick="deleteStudent('${s.id}')">Delete</button>
- </div></div>`).join('')||'<p>अभी कोई Student नहीं है।</p>';
-}
-
-async function saveStudent(){
- const id=$('student-id').value;
- const phone=$('st-phone').value.replace(/\D/g,'').slice(-10);
- const name=$('st-name').value.trim();
- if(!name||phone.length!==10)return toast('Student Name और 10 digit Parent Mobile जरूरी है');
- const payload={
-  name,reg_no:$('st-reg').value.trim(),roll_no:$('st-roll').value.trim(),
-  student_class:$('st-class').value,subject_batch:$('st-batch').value,
-  parent_name:$('st-parent').value.trim(),parent_phone:phone,
-  monthly_fee:Number($('st-fee').value)||0,fee_status:$('st-status').value
- };
- loader(true);
- const photo=$('st-photo').files[0];
- if(photo){
-  if(!photo.type.startsWith('image/')){loader(false);return toast('Image file चुनें')}
-  const path=(id||crypto.randomUUID())+'/'+Date.now()+'-'+photo.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const {error}=await db.storage.from('student-photos').upload(path,photo,{upsert:true});
-  if(error){loader(false);return toast(error.message)}
-  payload.photo_url=path;
- }
- const result=id?await db.from('students').update(payload).eq('id',id):await db.from('students').insert(payload);
- loader(false);
- if(result.error)return toast(result.error.message);
- ['student-id','st-name','st-reg','st-roll','st-parent','st-phone','st-fee','st-photo'].forEach(x=>$(x).value='');
- toast('Student Save हो गया');
- await loadOwner();
-}
-function editStudent(id){
- const s=students.find(x=>x.id===id);if(!s)return;
- $('student-id').value=s.id;$('st-name').value=s.name||'';
- $('st-reg').value=s.reg_no||'';$('st-roll').value=s.roll_no||'';
- $('st-class').value=s.student_class||'Class 1';
- $('st-batch').value=s.subject_batch||'Morning Batch (6-9 AM)';
- $('st-parent').value=s.parent_name||'';$('st-phone').value=s.parent_phone||'';
- $('st-fee').value=s.monthly_fee||0;$('st-status').value=s.fee_status||'Pending';
- window.scrollTo({top:0,behavior:'smooth'});
-}
-async function deleteStudent(id){
- if(!confirm('क्या Student Delete करना है?'))return;
- const {error}=await db.from('students').delete().eq('id',id);
- if(error)return toast(error.message);
- await loadOwner();
-}
-
-function renderFees(){
- $('fee-list').innerHTML=students.map(s=>`
- <div class="card flex justify-between items-center gap-2">
- <div><b>${esc(s.name)}</b><p class="text-xs">${esc(s.student_class)} • ₹${s.monthly_fee}</p>
- <b class="${s.fee_status==='Paid'?'text-green-600':'text-red-600'}">${esc(s.fee_status)}</b></div>
- <div class="space-y-1">
- <button class="btn ${s.fee_status==='Paid'?'red':'green'}" onclick="toggleFee('${s.id}','${s.fee_status==='Paid'?'Pending':'Paid'}')">${s.fee_status==='Paid'?'Pending करें':'Paid करें'}</button>
- <a class="block text-center btn green" target="_blank" href="https://wa.me/91${esc(s.parent_phone)}?text=${encodeURIComponent('Namaste, '+s.name+' ki coaching fee ₹'+s.monthly_fee+' pending hai. - Sankalp Coaching Classes')}">WhatsApp</a>
- </div></div>`).join('');
-}
-async function toggleFee(id,status){
- const {error}=await db.from('students').update({fee_status:status}).eq('id',id);
- if(error)return toast(error.message);
- await loadOwner();
-}
-
-async function renderAttendance(){
- const cls=$('att-class').value,date=$('att-date').value||today();
- $('att-date').value=date;
- const list=students.filter(s=>s.student_class===cls);
- const {data,error}=await db.from('attendance').select('*').eq('att_date',date);
- if(error)return toast(error.message);
- attendanceMap={};
- (data||[]).forEach(a=>attendanceMap[a.student_id]=a.status);
- $('attendance-list').innerHTML=list.map(s=>`
- <div class="card flex justify-between items-center">
- <b class="text-sm">${esc(s.name)}</b>
- <div class="flex gap-1">
- <button class="btn ${attendanceMap[s.id]==='Present'?'green':'blue'}" onclick="setAtt('${s.id}','Present')">P</button>
- <button class="btn ${attendanceMap[s.id]==='Absent'?'red':'blue'}" onclick="setAtt('${s.id}','Absent')">A</button>
- <button class="btn ${attendanceMap[s.id]==='Leave'?'green':'blue'}" onclick="setAtt('${s.id}','Leave')">L</button>
- </div></div>`).join('')||'<p class="text-xs">इस Class में कोई Student नहीं है।</p>';
-}
-function setAtt(id,status){atten
-danceMap[id] = status;
-renderAttendanceButtons();
-}
-
-function renderAttendanceButtons() {
-  const list = students.filter(s => s.student_class === selCls);
-
-  el('att-list').innerHTML = list.map(s => `
-    <div class="p-3 bg-white border rounded-xl flex justify-between items-center mb-2">
-      <div>
-        <p class="font-bold text-sm">${s.name}</p>
-        <p class="text-xs text-slate-500">${s.student_class} • ${s.subject_batch || ''}</p>
-      </div>
-      <div class="flex gap-1">
-        <button class="btn ${attendanceMap[s.id] === 'Present' ? 'green' : 'blue'}"
-          onclick="setAtt('${s.id}','Present')">P</button>
-        <button class="btn ${attendanceMap[s.id] === 'Absent' ? 'red' : 'blue'}"
-          onclick="setAtt('${s.id}','Absent')">A</button>
-        <button class="btn ${attendanceMap[s.id] === 'Leave' ? 'green' : 'blue'}"
-          onclick="setAtt('${s.id}','Leave')">L</button>
-      </div>
-    </div>
-  `).join('') || '<p class="text-xs">इस Class में कोई Student नहीं है।</p>';
-}
-
-async function saveAttendance() {
-  const list = students.filter(s => s.student_class === selCls);
-
-  if (!list.length) {
-    toast('इस Class में कोई Student नहीं है।');
-    return;
-  }
-
-  loader(true);
-
-  const today = new Date().toISOString().split('T')[0];
-
-  const records = list.map(s => ({
-    student_id: s.id,
-    att_date: today,
-    status: attendanceMap[s.id] || 'Present'
-  }));
-
-  const { error } = await db
-    .from('attendance')
-    .upsert(records, { onConflict: 'student_id,att_date' });
-
-  loader(false);
-
-  if (error) {
-    console.error(error);
-    toast('Attendance save नहीं हुई: ' + error.message);
-    return;
-  }
-
-  toast('✅ Attendance Successfully Saved!');
-  await loadOwner();
-}
-
-async function uploadHomework() {
-  const subject_batch = el('hw-class').value;
-  const title = el('hw-text').value.trim();
-  const fileInput = el('hw-file');
-  const file = fileInput ? fileInput.files[0] : null;
-
-  if (!title && !file) {
-    toast('Homework लिखें या File चुनें।');
-    return;
-  }
-
-  loader(true);
-
-  let file_data = '';
-  let file_name = '';
-  let file_type = '';
-
-  if (file) {
-    const reader = new FileReader();
-
-    file_data = await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-    file_name = file.name;
-    file_type = file.type === 'application/pdf' ? 'pdf' : 'image';
-  }
-
-  const { error } = await db.from('homework').insert([{
-    subject_batch,
-    title: title || file_name,
-    file_data,
-    file_name,
-    file_type
-  }]);
-
-  loader(false);
-
-  if (error) {
-    toast('Homework upload नहीं हुआ: ' + error.message);
-    return;
-  }
-
-  el('hw-text').value = '';
-  if (fileInput) fileInput.value = '';
-
-  toast('✅ Homework Upload हो गया!');
-  await loadOwner();
-}
-
-function renderHomework() {
-  const box = el('hw-list');
-  if (!box) return;
-
-  box.innerHTML = (homeworks || []).map(h => `
-    <div class="bg-white border rounded-xl p-3 mb-2">
-      <p class="font-bold text-sm">${h.title || 'Homework'}</p>
-      <p class="text-xs text-slate-500">${h.subject_batch || ''}</p>
-      ${h.file_data ? `
-        <a href="${h.file_data}" download="${h.file_name || 'homework'}"
-          class="text-blue-700 text-xs font-bold mt-2 inline-block">
-          ⬇ Download ${h.file_type === 'pdf' ? 'PDF' : 'File'}
-        </a>` : ''}
-      <button onclick="deleteHomework('${h.id}')"
-        class="text-red-600 text-xs font-bold ml-3">Delete</button>
-    </div>
-  `).join('') || '<p class="text-xs text-slate-500">अभी Homework नहीं है।</p>';
-}
-
-async function deleteHomework(id) {
-  if (!confirm('क्या आप यह Homework हटाना चाहते हैं?')) return;
-
-  loader(true);
-  const { error } = await db.from('homework').delete().eq('id', id);
-  loader(false);
-
-  if (error) {
-    toast('Delete नहीं हुआ: ' + error.message);
-    return;
-  }
-
-  toast('Homework Delete हो गया।');
-  await loadOwner();
-}
-
-async function saveTest() {
-  const student_id = el('t-stu').value;
-  const test_title = el('t-title').value.trim() || 'Weekly Test';
-  const marks = Number(el('t-marks').value);
-  const max_marks = Number(el('t-max').value) || 100;
-
-  if (!student_id || Number.isNaN(marks)) {
-    toast('Student और Marks भरें।');
-    return;
-  }
-
-  loader(true);
-
-  const { error } = await db.from('weekly_tests').insert([{
-    student_id,
-    test_title,
-    marks,
-    max_marks
-  }]);
-
-  loader(false);
-
-  if (error) {
-    toast('Test save नहीं हुआ: ' + error.message);
-    return;
-  }
-
-  el('t-title').value = '';
-  el('t-marks').value = '';
-  toast('✅ Test Marks Saved!');
-  await loadOwner();
-}
-
-async function saveEvent() {
-  const title = el('ev-title').value.trim();
-  const message = el('ev-msg').value.trim();
-  const start_date = el('ev-start').value;
-  const end_date = el('ev-end').value;
-  const reopen_date = el('ev-reopen').value;
-
-  if (!title || !message || !start_date || !end_date || !reopen_date) {
-    toast('सभी Event Details भरें।');
-    return;
-  }
-
-  loader(true);
-
-  const { error } = await db.from('coaching_events').insert([{
-    title,
-    message,
-    start_date,
-    end_date,
-    reopen_date
-  }]);
-
-  loader(false);
-
-  if (error) {
-    toast('Event save नहीं हुआ: ' + error.message);
-    return;
-  }
-
-  toast('🎉 Event Save हो गया!');
-  await loadOwner();
-}
-
-async function saveSettings() {
-  const settings = {
-    coaching_name: el('s-name').value.trim(),
-    teacher_name: el('s-teach').value.trim(),
-    owner_email: el('s-email').value.trim(),
-    owner_phone: el('s-phone').value.trim(),
-    upi_id: el('s-upi').value.trim()
-  };
-
-  loader(true);
-
-  const { error } = await db
-    .from('app_settings')
-    .update(settings)
-    .eq('id', 1);
-
-  loader(false);
-
-  if (error) {
-    toast('Settings save नहीं हुई: ' + error.message);
-    return;
-  }
-
-  toast('✅ Settings Save हो गईं!');
-  location.reload();
-}
-
-function payUPI() {
-  if (!cfg.upi_id) {
-    toast('पहले Settings में सही UPI ID डालें।');
-    return;
-  }
-
-  const amount = Number(curStu.monthly_fee || 0);
-  const url = `upi://pay?pa=${encodeURIComponent(cfg.upi_id)}&pn=${encodeURIComponent(cfg.coaching_name)}&am=${amount}&cu=INR`;
-
-  window.location.href = url;
-}
-
-async function sendRef() {
-  const friend_name = el('r-name').value.trim();
-  const friend_phone = el('r-phone').value.replace(/\D/g, '').slice(-10);
-  const student_class = el('r-cls').value;
-
-  if (!friend_name || friend_phone.length !== 10) {
-    toast('सही नाम और 10 digit Mobile Number भरें।');
-    return;
-  }
-
-  loader(true);
-
-  const { error } = await db.from('enquiries').insert([{
-    referred_by_name: curStu.name,
-    friend_name,
-    friend_phone,
-    student_class
-  }]);
-
-  loader(false);
-
-  if (error) {
-    toast('Referral submit नहीं हुआ: ' + error.message);
-    return;
-  }
-
-  toast('✅ Referral Submit हो गया!');
-}
-
+const SUPABASE_URL = "https://dwpmeaxovlfkamcgdrxs.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_lU5D0hXiVIvdc-SxF3z2xg_EiEblrN7";
+const OWNER_ID = "6a060d80-5f57-44d0-87c9-1c98a0c09972";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+let currentUser=null,isOwner=false,students=[],children=[],attendanceDraft={},settings={};
+const classes=Array.from({length:8},(_,i)=>i+1);
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',3200)}
+function busy(v){$('busy').style.display=v?'grid':'none'}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function dateToday(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function fillClassSelect(id,all=true){$(id).innerHTML=(all?'<option value="">सभी कक्षाएँ</option>':'')+classes.map(n=>`<option value="${n}">कक्षा ${n}</option>`).join('')}
+function money(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
+function showTab(t){document.querySelectorAll('.tabPage').forEach(x=>x.classList.add('hidden'));$('tab-'+t).classList.remove('hidden');document.querySelectorAll('#navTabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));if(t==='students')renderStudents();if(t==='attendance')loadAttendance();if(t==='fees')loadFees();if(t==='parent')loadParentData()}
+function fail(e){console.error(e);toast(e?.message||'कुछ गलत हुआ। Supabase logs देखें।')}
+async function login(){const email=$('loginEmail').value.trim(),password=$('loginPassword').value;if(!email||!password)return toast('Gmail और Password भरें');busy(true);const {data,error}=await db.auth.signInWithPassword({email,password});busy(false);if(error)return toast(error.message);currentUser=data.user;await enterApp()}
+async function enterApp(){busy(true);const {data:profile,error}=await db.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();if(error){busy(false);return fail(error)}isOwner=currentUser.id===OWNER_ID||profile?.role==='owner';$('loginView').classList.add('hidden');$('appView').classList.remove('hidden');$('welcome').textContent=profile?.full_name||currentUser.email||'Welcome';$('roleLabel').textContent=isOwner?'Admin / Owner':'Parent Portal';document.querySelectorAll('.adminOnly').forEach(x=>x.classList.toggle('hidden',!isOwner));$('tab-parent').classList.toggle('hidden',isOwner);$('tab-parent').classList.toggle('hidden',false);const {data:s}=await db.from('app_settings').select('*').eq('id',1).maybeSingle();settings=s||{};if(settings.coaching_name)$('coachingTitle').textContent=settings.coaching_name;fillClassSelect('studentClass',false);fillClassSelect('studentFilter');fillClassSelect('attendanceClass',false);fillClassSelect('homeworkClass',false);fillClassSelect('feeClass',false);$('attendanceDate').value=dateToday();$('feeMonth').value=dateToday().slice(0,7);$('eventDate').value=dateToday();await loadStudents();await loadDashboard();busy(false);showTab('dashboard')}
+async function logout(){await db.auth.signOut();location.reload()}
+async function loadStudents(){const q=await db.from('students').select('*').order('created_at',{ascending:false});if(q.error)return fail(q.error);students=q.data||[];students=await Promise.all(students.map(async s=>{if(s.photo_url&&!s.photo_url.startsWith('http')){const {data}=await db.storage.from('student-photos').createSignedUrl(s.photo_url,3600);return {...s,photo_url:data?.signedUrl||''}}return s}));$('statStudents').textContent=students.length;$('testStudent').innerHTML=students.map(s=>`<option value="${s.id}">${esc(s.student_name)} · Class ${s.class_no}</option>`).join('');renderStudents()}
+function renderStudents(){if(!isOwner)return;const f=$('studentFilter').value;const list=students.filter(s=>!f||String(s.class_no)===f);$('studentsList').innerHTML=list.length?list.map(s=>`<div class="card student"><img class="avatar" src="${esc(s.photo_url||'')}" onerror="this.style.display='none'"><div style="flex:1"><b>${esc(s.student_name)}</b><div class="muted">कक्षा ${s.class_no} · ${esc(s.parent_email||s.parent_phone||'Parent login pending')}</div><div class="muted">फीस ${money(s.monthly_fee)}</div></div><div class="actions"><button class="secondary" onclick="editStudent('${s.id}')">Edit</button><button class="danger" onclick="deleteStudent('${s.id}')">Delete</button><button class="secondary" onclick="printId('${s.id}')">ID PDF</button></div></div>`).join(''):'<p class="muted">अभी कोई विद्यार्थी नहीं है।</p>'}
+async function upload(bucket,file,path){if(!file)return null;const {data,error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type});if(error)throw error;return data.path}
+async function saveStudent(){if(!isOwner)return;const id=$('studentId').value,name=$('studentName').value.trim(),cls=Number($('studentClass').value),email=$('parentEmail').value.trim()||null,phone=$('parentPhone').value.trim().replace(/\D/g,'').slice(-10)||null;if(!name||!cls||(!email&&!phone))return toast('नाम, कक्षा और Gmail या मोबाइल भरें');busy(true);try{let photo_url=null;const file=$('studentPhoto').files[0];if(file){const path=(id||crypto.randomUUID())+'/'+Date.now()+'-'+file.name;await upload('student-photos',file,path);photo_url=path}
+const payload={student_name:name,class_no:cls,father_name:$('fatherName').value.trim()||null,mother_name:$('motherName').value.trim()||null,parent_email:email,parent_phone:phone,monthly_fee:Number($('monthlyFee').value)||0,updated_at:new Date().toISOString()};if(photo_url)payload.photo_url=photo_url;
+const res=id?await db.from('students').update(payload).eq('id',id):await db.from('students').insert(payload);if(res.error)throw res.error;$('studentFormTitle').textContent='नया विद्यार्थी जोड़ें';$('studentId').value='';['studentName','fatherName','motherName','parentEmail','parentPhone'].forEach(k=>$(k).value='');$('studentPhoto').value='';await loadStudents();toast('विद्यार्थी Save हो गया');}catch(e){fail(e)}finally{busy(false)}}
+function editStudent(id){const s=students.find(x=>x.id===id);if(!s)return;$('studentId').value=s.id;$('studentName').value=s.student_name;$('studentClass').value=s.class_no;$('fatherName').value=s.father_name||'';$('motherName').value=s.mother_name||'';$('parentEmail').value=s.parent_email||'';$('parentPhone').value=s.parent_phone||'';$('monthlyFee').value=s.monthly_fee||0;$('studentFormTitle').textContent='विद्यार्थी Edit करें';window.scrollTo({top:0,behavior:'smooth'})}
+async function deleteStudent(id){if(!confirm('इस विद्यार्थी का रिकॉर्ड हटाएँ?'))return;const {error}=await db.from('students').delete().eq('id',id);if(error)return fail(error);await loadStudents();toast('रिकॉर्ड हट गया')}
+function printId(id){const s=students.find(x=>x.id===id);if(!s)return;const w=window.open('','_blank');w.document.write(`<html><title>Student ID</title><body style="font-family:Arial;padding:25px"><div style="border:3px solid #102b63;border-radius:18px;padding:24px;width:330px;text-align:center"><h2>संकल्प कोचिंग क्लासेस</h2><img src="${esc(s.photo_url||'')}" style="width:100px;height:100px;border-radius:50%;object-fit:cover"><h2>${esc(s.student_name)}</h2><p>कक्षा ${s.class_no}</p><p>अभिभावक: ${esc(s.father_name||'')}</p><p>संचालक: आशीष प्रजापति</p><p>9569978125</p></div><script>window.print()<\/script></body></html>`);w.document.close()}
+async function loadDashboard(){const {data:ev}=await db.from('coaching_events').select('*').eq('is_published',true).order('created_at',{ascending:false}).limit(10);$('dashboardEvents').innerHTML=(ev||[]).map(e=>`<div class="card"><b>${esc(e.title)}</b><p>${esc(e.description||'')}</p><small>${esc(e.event_date||'')}</small></div>`).join('')||'कोई नई सूचना नहीं';$('classShortcuts').innerHTML=classes.map(n=>`<span class="badge">कक्षा ${n}</span>`).join('');if(isOwner){const {count}=await db.from('fee_submissions').select('*',{count:'exact',head:true}).eq('status','pending');$('statPending').textContent=count||0}}
+async function loadAttendance(){if(!isOwner)return;const cls=Number($('attendanceClass').value||1),date=$('attendanceDate').value||dateToday(),list=students.filter(s=>s.class_no===cls);const {data,error}=await db.from('attendance').select('*').eq('attendance_date',date);if(error)return fail(error);attendanceDraft={};(data||[]).forEach(a=>attendanceDraft[a.student_id]=a.status);$('attendanceList').innerHTML=list.map(s=>`<div class="card between"><div class="student"><img class="avatar" src="${esc(s.photo_url||'')}" onerror="this.style.display='none'"><b>${esc(s.student_name)}</b></div><div class="actions"><button class="${attendanceDraft[s.id]==='P'?'good':'secondary'}" onclick="setAttendance('${s.id}','P')">P</button><button class="${attendanceDraft[s.id]==='A'?'danger':'secondary'}" onclick="setAttendance('${s.id}','A')">A</button><button class="${attendanceDraft[s.id]==='L'?'active':'secondary'}" onclick="setAttendance('${s.id}','L')">L</button></div></div>`).join('')||'<p class="muted">इस कक्षा में विद्यार्थी नहीं हैं।</p>'}
+function setAttendance(id,status){attendanceDraft[id]=status;loadAttendanceDraftOnly()}
+function loadAttendanceDraftOnly(){document.querySelectorAll('#attendanceList .card').forEach((card,i)=>{const s=students.filter(x=>x.class_no===Number($('attendanceClass').value||1))[i];if(!s)return;const bs=card.querySelectorAll('button');bs[0].className=attendanceDraft[s.id]==='P'?'good':'secondary';bs[1].className=attendanceDraft[s.id]==='A'?'danger':'secondary';bs[2].className=attendanceDraft[s.id]==='L'?'good':'secondary'})}
+async function saveAttendance(){const cls=Number($('attendanceClass').value),date=$('attendanceDate').value,list=students.filter(s=>s.class_no===cls);if(!list.length)return toast('इस कक्षा में विद्यार्थी नहीं हैं');busy(true);const rows=list.map(s=>({student_id:s.id,attendance_date:date,status:attendanceDraft[s.id]||'P',marked_by:currentUser.id}));const {error}=await db.from('attendance').upsert(rows,{onConflict:'student_id,attendance_date'});busy(false);if(error)return fail(error);toast('Attendance Save हो गई')}
+async function loadHomework(){const {data,error}=await db.from('homework').select('*').order('created_at',{ascending:false}).limit(50);if(error)return fail(error);$('homeworkList').innerHTML=(data||[]).map(h=>`<div class="card"><b>कक्षा ${h.class_no} · ${esc(h.title)}</b><p>${esc(h.description||'')}</p>${h.file_path?`<button class="secondary" onclick="downloadStorage('homework-files','${esc(h.file_path)}')">File देखें / Download</button>`:''}<button class="danger" onclick="deleteHomework('${h.id}')">Delete</button></div>`).join('')||'अभी Homework नहीं है'}
+async function publishHomework(){const cls=Number($('homeworkClass').value),desc=$('homeworkDescription').value.trim(),subject=$('homeworkSubject').value.trim(),file=$('homeworkFile').files[0];if(!desc&&!file)return toast('Homework विवरण या file दें');busy(true);try{let path=null,name=null,type=null;if(file){path=await upload('homework-files',file,cls+'/'+Date.now()+'-'+file.name);name=file.name;type=file.type}const {error}=await db.from('homework').insert({class_no:cls,title:subject||'Homework',subject,description:desc,file_path:path,file_name:name,file_type:type,created_by:currentUser.id});if(error)throw error;$('homeworkDescription').value='';$('homeworkFile').value='';await loadHomework();toast('Homework Publish हो गया')}catch(e){fail(e)}finally{busy(false)}}
+async function deleteHomework(id){if(!confirm('Homework हटाएँ?'))return;const {error}=await db.from('homework').delete().eq('id',id);if(error)return fail(error);loadHomework()}
+async function downloadStorage(bucket,path){const {data,error}=await db.storage.from(bucket).createSignedUrl(path,300);if(error)return fail(error);window.open(data.signedUrl,'_blank')}
+async function saveTest(){const id=$('testStudent').value,total=Number($('testTotal').value),obt=Number($('testObtained').value);if(!id||!$('testTitle').value.trim()||obt<0||total<=0||obt>total)return toast('Test की जानकारी सही भरें');const {error}=await db.from('weekly_tests').insert({student_id:id,test_title:$('testTitle').value.trim(),subject:$('testSubject').value.trim(),total_marks:total,obtained_marks:obt,created_by:currentUser.id});if(error)return fail(error);toast('Marks Save हो गए');loadTests()}
+async function loadTests(){const {data,error}=await db.from('weekly_tests').select('*,students(student_name)').order('test_date',{ascending:false}).limit(100);if(error)return fail(error);$('testsList').innerHTML=(data||[]).map(t=>`<div class="card between"><span>${esc(t.students?.student_name||'Student')} · ${esc(t.test_title)}</span><b>${t.obtained_marks}/${t.total_marks}</b></div>`).join('')||'अभी रिजल्ट नहीं है'}
+async function saveEvent(){const title=$('eventTitle').value.trim(),description=$('eventDescription').value.trim();if(!title)return toast('शीर्षक लिखें');const {error}=await db.from('coaching_events').insert({title,description,event_date:$('eventDate').value||null,event_type:$('eventType').value,is_published:true,created_by:currentUser.id});if(error)return fail(error);toast('Notice Publish हो गया');loadEvents();loadDashboard()}
+async function loadEvents(){const {data,error}=await db.from('coaching_events').select('*').order('created_at',{ascending:false});if(error)return fail(error);$('eventsList').innerHTML=(data||[]).map(e=>`<div class="card between"><div><b>${esc(e.title)}</b><p>${esc(e.description||'')}</p><small>${esc(e.event_date||'')}</small></div><button class="danger" onclick="deleteEvent('${e.id}')">Delete</button></div>`).join('')||'कोई Notice नहीं'}
+async function deleteEvent(id){if(!confirm('Notice हटाएँ?'))return;const {error}=await db.from('coaching_events').delete().eq('id',id);if(error)return fail(error);loadEvents()}
+async function loadFees(){const cls=Number($('feeClass').value||1),month=$('feeMonth').value+'-01';const list=students.filter(s=>s.class_no===cls);const {data:fees,error}=await db.from('fee_payments').select('*').eq('fee_month',month);if(error)return fail(error);$('feeStudents').innerHTML=list.map(s=>{const f=(fees||[]).find(x=>x.student_id===s.id);return `<div class="card between"><div><b>${esc(s.student_name)}</b><div>${money(f?.amount??s.monthly_fee)} · <span class="badge ${f?.status==='paid'?'ok':'no'}">${esc(f?.status||'pending')}</span></div></div><div class="actions"><button class="good" onclick="setFee('${s.id}','${month}',${Number(f?.amount??s.monthly_fee)},'paid')">Paid</button><button class="secondary" onclick="setFee('${s.id}','${month}',${Number(f?.amount??s.monthly_fee)},'pending')">Pending</button></div></div>`}).join('')||'इस कक्षा में विद्यार्थी नहीं हैं';const {data:req}=await db.from('fee_submissions').select('*,students(student_name)').order('created_at',{ascending:false}).limit(50);$('feeRequests').innerHTML=(req||[]).map(r=>`<div class="card"><b>${esc(r.students?.student_name||'Student')} · ${money(r.amount)}</b><p>UTR: ${esc(r.utr_number)} · <span class="badge">${esc(r.status)}</span></p>${r.screenshot_path?`<button class="secondary" onclick="downloadStorage('fee-proofs','${esc(r.screenshot_path)}')">Screenshot देखें</button>`:''}<div class="actions"><button class="good" onclick="reviewFee('${r.id}','approved','${r.student_id}','${r.fee_payment_id||''}',${Number(r.amount)})">Approve</button><button class="danger" onclick="reviewFee('${r.id}','rejected')">Reject</button></div></div>`).join('')||'कोई अनुरोध नहीं'}
+async function setFee(student_id,fee_month,amount,status){const {error}=await db.from('fee_payments').upsert({student_id,fee_month,amount,status,paid_amount:status==='paid'?amount:0,verified_by:currentUser.id,updated_at:new Date().toISOString()},{onConflict:'student_id,fee_month'});if(error)return fail(error);toast('Fee Status Update हो गया');loadFees()}
+async function reviewFee(id,status,studentId,feeId,amount){const {error}=await db.from('fee_submissions').update({status,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error)return fail(error);if(status==='approved'&&feeId){await db.from('fee_payments').update({status:'paid',paid_amount:amount,payment_date:new Date().toISOString(),verified_by:currentUser.id}).eq('id',feeId)}toast('Request Update हो गई');loadFees()}
+async function saveSettings(){const {error}=await db.from('app_settings').update({upi_id:$('settingsUpi').value.trim(),upi_mobile_number:$('settingsPhone').value.trim(),updated_at:new Date().toISOString()}).eq('id',1);if(error)return fail(error);toast('UPI Settings Save हो गई')}
+async function loadParentData(){const {data:ch,error}=await db.from('students').select('*').eq('parent_user_id',currentUser.id).eq('is_active',true);if(error)return fail(error);children=await Promise.all((ch||[]).map(async s=>{if(s.photo_url&&!s.photo_url.startsWith('http')){const {data}=await db.storage.from('student-photos').createSignedUrl(s.photo_url,3600);return {...s,photo_url:data?.signedUrl||''}}return s}));$('paymentStudent').innerHTML=children.map(s=>`<option value="${s.id}">${esc(s.student_name)}</option>`).join('');$('parentChildren').innerHTML=children.map(s=>`<div class="card student"><img class="avatar" src="${esc(s.photo_url||'')}" onerror="this.style.display='none'"><div><b>${esc(s.student_name)}</b><div class="muted">कक्षा ${s.class_no} · मासिक फीस ${money(s.monthly_fee)}</div></div><button class="secondary" onclick="printId('${s.id}')">ID PDF</button></div>`).join('')||'इस Login से कोई बच्चा लिंक नहीं है। Admin से संपर्क करें।';if(!children.length)return;const ids=children.map(s=>s.id);const [a,h,t,f]=await Promise.all([db.from('attendance').select('*,students(student_name)').in('student_id',ids).order('attendance_date',{ascending:false}).limit(60),db.from('homework').select('*').in('class_no',[...new Set(children.map(s=>s.class_no))]).order('created_at',{ascending:false}).limit(40),db.from('weekly_tests').select('*,students(student_name)').in('student_id',ids).order('test_date',{ascending:false}),db.from('fee_payments').select('*,students(student_name)').in('student_id',ids).order('fee_month',{ascending:false})]);$('parentAttendance').innerHTML=(a.data||[]).map(x=>`<div class="card between">${esc(x.students?.student_name||'')} · ${x.attendance_date}<span class="badge ${x.status==='P'?'ok':'no'}">${x.status}</span></div>`).join('')||'Attendance उपलब्ध नहीं';$('parentHomework').innerHTML=(h.data||[]).map(x=>`<div class="card"><b>कक्षा ${x.class_no} · ${esc(x.title)}</b><p>${esc(x.description||'')}</p>${x.file_path?`<button class="secondary" onclick="downloadStorage('homework-files','${esc(x.file_path)}')">Download</button>`:''}</div>`).join('')||'Homework उपलब्ध नहीं';$('parentTests').innerHTML=(t.data||[]).map(x=>`<div class="card between">${esc(x.students?.student_name||'')} · ${esc(x.test_title)}<b>${x.obtained_marks}/${x.total_marks}</b></div>`).join('')||'Test marks उपलब्ध नहीं';$('parentFees').innerHTML=(f.data||[]).map(x=>`<div class="card between">${esc(x.students?.student_name||'')} · ${x.fee_month}<b>${money(x.paid_amount)} / ${money(x.amount)} · ${esc(x.status)}</b></div>`).join('')||'Fee history उपलब्ध नहीं'}
+async function submitPayment(){const s=children.find(x=>x.id===$('paymentStudent').value),amount=Number($('paymentAmount').value),utr=$('paymentUtr').value.trim(),file=$('paymentScreenshot').files[0];if(!s||amount<=0||!utr||!file)return toast('सभी Payment details भरें');busy(true);try{const path=await upload('fee-proofs',file,s.id+'/'+Date.now()+'-'+file.name);const {data:fp,error:fe}=await db.from('fee_payments').select('id').eq('student_id',s.id).eq('fee_month',dateToday().slice(0,7)+'-01').maybeSingle();if(fe)throw fe;const {error}=await db.from('fee_submissions').insert({student_id:s.id,fee_payment_id:fp?.id||null,amount,utr_number:utr,payment_date:$('paymentDate').value?new Date($('paymentDate').value).toISOString():null,screenshot_path:path,status:'pending',submitted_by:currentUser.id});if(error)throw error;toast('Payment verification request भेज दी गई');$('paymentAmount').value='';$('paymentUtr').value='';$('paymentScreenshot').value=''}catch(e){fail(e)}finally{busy(false)}}
+$('loginBtn').onclick=login;$('logoutBtn').onclick=logout;$('saveStudentBtn').onclick=saveStudent;$('clearStudentBtn').onclick=()=>{document.querySelectorAll('#tab-students input').forEach(i=>i.value='');$('studentId').value=''};$('studentFilter').onchange=renderStudents;$('attendanceClass').onchange=loadAttendance;$('attendanceDate').onchange=loadAttendance;$('saveAttendanceBtn').onclick=saveAttendance;$('attendancePrintBtn').onclick=()=>window.print();$('publishHomeworkBtn').onclick=publishHomework;$('saveTestBtn').onclick=saveTest;$('saveEventBtn').onclick=saveEvent;$('feeClass').onchange=loadFees;$('feeMonth').onchange=loadFees;$('saveSettingsBtn').onclick=saveSettings;$('submitPaymentBtn').onclick=submitPayment;
+document.querySelectorAll('#navTabs button').forEach(b=>b.onclick=()=>{if(b.classList.contains('adminOnly')&&!isOwner)return;showTab(b.dataset.tab);if(b.dataset.tab==='homework')loadHomework();if(b.dataset.tab==='tests')loadTests();if(b.dataset.tab==='events')loadEvents();if(b.dataset.tab==='fees'){ $('settingsUpi').value=settings.upi_id||'';$('settingsPhone').value=settings.upi_mobile_number||''}});
+classes.forEach(n=>{});
+fillClassSelect('studentClass',false);fillClassSelect('studentFilter');fillClassSelect('attendanceClass',false);fillClassSelect('homeworkClass',false);fillClassSelect('feeClass',false);
+$('attendanceDate').value=dateToday();$('feeMonth').value=dateToday().slice(0,7);
+db.auth.getSession().then(({data})=>{if(data.session){currentUser=data.session.user;enterApp()}});
 </script>
 </body>
 </html>
-  
