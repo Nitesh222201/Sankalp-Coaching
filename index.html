@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sankalp Coaching Center — TuitionDesk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-indigo-100">
+
+  <div id="app" class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-xl relative pb-24">
+    <!-- Loading Overlay -->
+    <div id="loader" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+      <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+      <p class="mt-3 text-sm font-semibold text-slate-700">Connecting to Sankalp Cloud...</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
+      Action completed
+    </div>
+
+    <!-- ROLE SELECTION SCREEN -->
+    <div id="screen-role" class="p-6 flex flex-col justify-between min-h-screen bg-gradient-to-b from-indigo-700 via-indigo-800 to-slate-900 text-white">
+      <div class="pt-8 text-center">
+        <div class="w-16 h-16 bg-white/15 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center text-3xl font-extrabold shadow-inner border border-white/20">
+          SC
+        </div>
+        <h1 id="welcome-coaching-name" class="mt-4 text-2xl font-extrabold tracking-tight">Sankalp Coaching Center</h1>
+        <p id="welcome-owner-name" class="text-indigo-200 text-sm mt-1">Director: Ashish Sir</p>
+        <span class="inline-block mt-3 px-3 py-1 bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold rounded-full">
+          ● Live Cloud Portal
+        </span>
+      </div>
+
+      <div class="space-y-4 my-8">
+        <!-- Owner Login Card -->
+        <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="font-bold text-lg text-slate-900">Owner / Teacher Login</h2>
+              <p class="text-xs text-slate-500">Manage students, fees, tests & settings</p>
+            </div>
+            <span class="text-2xl">🔐</span>
+          </div>
+          <div class="flex gap-2">
+            <input id="owner-pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="Enter PIN (Default: 1234)" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600" />
+            <button onclick="loginOwner()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-sm rounded-xl transition shrink-0">
+              Login
+            </button>
+          </div>
+        </div>
+
+        <!-- Parent Login Card -->
+        <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="font-bold text-lg text-slate-900">Parent Portal</h2>
+              <p class="text-xs text-slate-500">Check child's attendance, test & fee due date</p>
+            </div>
+            <span class="text-2xl">👨‍👩‍👧</span>
+          </div>
+          <div class="flex gap-2">
+            <input id="parent-phone-input" type="tel" maxlength="10" placeholder="Registered 10-digit Mobile" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+            <button onclick="loginParent()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-sm rounded-xl transition shrink-0">
+              View
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-indigo-300/70 pb-2">Powered by TuitionDesk Cloud</p>
+    </div>
+
+    <!-- ==================== OWNER DASHBOARD & TABS ==================== -->
+    <div id="screen-owner" class="hidden">
+      <!-- Top Header -->
+      <header class="bg-indigo-700 text-white px-4 pt-4 pb-5 rounded-b-3xl shadow-md sticky top-0 z-30">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 id="header-coaching" class="font-extrabold text-lg leading-tight">Sankalp Coaching Center</h1>
+            <p id="header-teacher" class="text-xs text-indigo-200">Teacher: Ashish Sir • Owner Mode</p>
+          </div>
+          <button onclick="logout()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold">
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- TAB 1: DASHBOARD & STUDENTS -->
+      <section id="owner-tab-home" class="p-4 space-y-4">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-medium text-slate-500">Fees Collected</p>
+            <p id="stat-collected" class="text-xl font-extrabold text-emerald-600 mt-1">₹0</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-medium text-slate-500">Fees Pending</p>
+            <p id="stat-pending" class="text-xl font-extrabold text-rose-600 mt-1">₹0</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-medium text-slate-500">Total Students</p>
+            <p id="stat-students" class="text-xl font-extrabold text-indigo-700 mt-1">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-xs font-medium text-slate-500">Referral Leads</p>
+            <p id="stat-enquiries" class="text-xl font-extrabold text-amber-600 mt-1">0</p>
+          </div>
+        </div>
+
+        <!-- Add Student Button -->
+        <div class="flex items-center justify-between pt-2">
+          <h2 class="font-bold text-slate-800 text-base">Students Directory</h2>
+          <button onclick="openAddStudentModal()" class="px-3.5 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm active:scale-95">
+            + Add Student
+          </button>
+        </div>
+
+        <!-- Student List -->
+        <div id="owner-student-list" class="space-y-2.5"></div>
+
+        <!-- Referral Enquiries Section -->
+        <div class="pt-3">
+          <h2 class="font-bold text-slate-800 text-base mb-2">Refer-a-Friend Enquiries</h2>
+          <div id="owner-enquiries-list" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: FEES -->
+      <section id="owner-tab-fees" class="p-4 space-y-4 hidden">
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <h2 class="font-bold text-amber-900 text-sm">Pending Fee Reminders</h2>
+            <p class="text-xs text-amber-700 mt-0.5">Send WhatsApp alert with due date & UPI</p>
+          </div>
+          <span class="text-2xl">📲</span>
+        </div>
+        <div id="owner-fees-list" class="space-y-3"></div>
+      </section>
+
+      <!-- TAB 3: ATTENDANCE & HOMEWORK -->
+      <section id="owner-tab-attendance" class="p-4 space-y-4 hidden">
+        <!-- Daily Homework Box -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-2.5">
+          <h2 class="font-bold text-slate-800 text-sm">Post Today's Homework</h2>
+          <input id="hw-batch" type="text" placeholder="Batch / Class (e.g. Class 10 Maths or All)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          <input id="hw-title" type="text" placeholder="Homework Topic (e.g. Exercise 4.2 Q1-Q5)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          <button onclick="saveHomework()" class="w-full py-2 bg-slate-900 text-white text-xs font-bold rounded-xl">
+            Publish Homework to Parent App
+          </button>
+        </div>
+
+        <!-- Attendance Marking -->
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-slate-800 text-sm">Mark Today's Attendance</h2>
+          <span id="today-date-label" class="text-xs font-semibold text-indigo-600"></span>
+        </div>
+        <div id="owner-attendance-list" class="space-y-2.5"></div>
+        <button onclick="saveAllAttendance()" class="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl shadow-md active:scale-95">
+          Save Attendance
+        </button>
+      </section>
+
+      <!-- TAB 4: WEEKLY TESTS -->
+      <section id="owner-tab-tests" class="p-4 space-y-4 hidden">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+          <h2 class="font-bold text-slate-800 text-sm">Add Weekly Test Marks</h2>
+          <select id="test-student-select" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"></select>
+          <input id="test-title-input" type="text" placeholder="Test Name (e.g. Weekly Test #4 - Science)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="test-marks-input" type="number" placeholder="Marks Obtained" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+            <input id="test-max-input" type="number" value="100" placeholder="Max Marks (100)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          </div>
+          <button onclick="saveTestScore()" class="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl">
+            Save Marks & Update Parent Report
+          </button>
+        </div>
+
+        <h2 class="font-bold text-slate-800 text-sm">Recent Test Results (Share on WhatsApp)</h2>
+        <div id="owner-tests-list" class="space-y-2.5"></div>
+      </section>
+
+      <!-- TAB 5: SECURE SETTINGS -->
+      <section id="owner-tab-settings" class="p-4 space-y-4 hidden">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-3.5">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🛡️</span>
+            <div>
+              <h2 class="font-bold text-slate-900 text-base">Owner Security & UPI Settings</h2>
+              <p class="text-xs text-slate-500">Only visible in Owner Mode. Saved to Cloud.</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Coaching Center Name</label>
+            <input id="set-coaching-name" type="text" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Teacher Name (Shown to Parents)</label>
+            <input id="set-teacher-name" type="text" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">UPI ID for Fee Collection</label>
+            <input id="set-upi-id" type="text" placeholder="e.g. ashishsir@okaxis" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-indigo-700" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Owner Login PIN</label>
+            <input id="set-owner-pin" type="text" inputmode="numeric" maxlength="6" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold tracking-widest" />
+          </div>
+
+          <button onclick="saveOwnerSettings()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md active:scale-95">
+            Save Secure Settings
+          </button>
+        </div>
+      </section>
+
+      <!-- Bottom Navigation Bar -->
+      <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-slate-200 px-2 py-2 flex justify-around items-center z-30">
+        <button onclick="switchOwnerTab('home')" id="nav-home" class="owner-nav flex flex-col items-center text-indigo-600 font-bold text-[11px]">
+          <span class="text-lg">🏠</span>Students
+        </button>
+        <button onclick="switchOwnerTab('fees')" id="nav-fees" class="owner-nav flex flex-col items-center text-slate-400 font-medium text-[11px]">
+          <span class="text-lg">💰</span>Fees
+        </button>
+        <button onclick="switchOwnerTab('attendance')" id="nav-attendance" class="owner-nav flex flex-col items-center text-slate-400 font-medium text-[11px]">
+          <span class="text-lg">📋</span>Attend/HW
+        </button>
+        <button onclick="switchOwnerTab('tests')" id="nav-tests" class="owner-nav flex flex-col items-center text-slate-400 font-medium text-[11px]">
+          <span class="text-lg">📊</span>Tests
+        </button>
+        <button onclick="switchOwnerTab('settings')" id="nav-settings" class="owner-nav flex flex-col items-center text-slate-400 font-medium text-[11px]">
+          <span class="text-lg">⚙️</span>Settings
+        </button>
+      </nav>
+    </div>
+
+    <!-- ==================== PARENT PORTAL SCREEN ==================== -->
+    <div id="screen-parent" class="hidden pb-10">
+      <header class="bg-emerald-700 text-white px-4 pt-4 pb-6 rounded-b-3xl shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-[11px] uppercase tracking-wider text-emerald-200 font-semibold">Sankalp Coaching Center</p>
+            <h1 id="p-student-name" class="text-xl font-extrabold mt-0.5">Student Name</h1>
+            <p id="p-student-meta" class="text-xs text-emerald-100">Class • Subject • Teacher</p>
+          </div>
+          <button onclick="logout()" class="px-3 py-1.5 bg-white/15 rounded-lg text-xs font-semibold">Exit</button>
+        </div>
+      </header>
+
+      <div class="p-4 space-y-4 -mt-3">
+        <!-- Fee Status & Next Due Date Card -->
+        <div class="bg-white rounded-2xl p-4 shadow-md border border-slate-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500">Monthly Fee Status</p>
+              <p id="p-fee-amount" class="text-2xl font-extrabold text-slate-900 mt-0.5">₹1,000</p>
+              <p id="p-due-date" class="text-xs font-bold text-rose-600 mt-1">Next Payment Due: --</p>
+            </div>
+            <span id="p-fee-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">Pending</span>
+          </div>
+          <button id="p-upi-btn" onclick="payViaUPI()" class="mt-3 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow flex items-center justify-center gap-2">
+            <span>💳 Pay Now via UPI</span>
+          </button>
+        </div>
+
+        <!-- Attendance Card -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="font-bold text-slate-800 text-sm">Attendance Overview</h2>
+            <span id="p-att-percent" class="text-sm font-extrabold text-emerald-600">100%</span>
+          </div>
+          <div id="p-att-pills" class="flex gap-1.5 overflow-x-auto no-scrollbar py-1"></div>
+        </div>
+
+        <!-- Today's Homework -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <h2 class="font-bold text-slate-800 text-sm mb-2">📚 Latest Homework</h2>
+          <div id="p-homework-list" class="space-y-2 text-xs text-slate-600"></div>
+        </div>
+
+        <!-- Weekly Test Progress -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+          <h2 class="font-bold text-slate-800 text-sm mb-3">📈 Weekly Test Performance</h2>
+          <div id="p-tests-list" class="space-y-2.5"></div>
+        </div>
+
+        <!-- Refer a Friend -->
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 space-y-2.5">
+          <h2 class="font-bold text-indigo-950 text-sm">🎁 Refer a Friend / Neighbour</h2>
+          <p class="text-xs text-indigo-700">Know someone looking for quality coaching? Share their details with Ashish Sir.</p>
+          <input id="ref-friend-name" type="text" placeholder="Student / Friend Name" class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="ref-friend-phone" type="tel" maxlength="10" placeholder="Parent Mobile" class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs" />
+            <input id="ref-friend-class" type="text" placeholder="Class (e.g. 9th)" class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl text-xs" />
+          </div>
+          <button onclick="submitReferral()" class="w-full py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl">
+            Send Referral Enquiry
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD / EDIT STUDENT MODAL -->
+    <div id="modal-student" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden flex items-end sm:items-center justify-center p-4">
+      <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
+        <div class="flex items-center justify-between">
+          <h3 id="modal-student-title" class="font-extrabold text-base text-slate-900">Add New Student</h3>
+          <button onclick="closeStudentModal()" class="text-slate-400 text-xl font-bold">&times;</button>
+        </div>
+        <input type="hidden" id="edit-student-id" />
+        <input id="stu-name" type="text" placeholder="Student Full Name" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+        <div class="grid grid-cols-2 gap-2">
+          <input id="stu-class" type="text" placeholder="Class (e.g. 10th)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+          <input id="stu-subject" type="text" placeholder="Subject / Batch" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+        </div>
+        <input id="stu-phone" type="tel" maxlength="10" placeholder="Parent WhatsApp Number (10 digits)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-500 ml-1">Monthly Fee (₹)</label>
+            <input id="stu-fee" type="number" value="1000" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold" />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-500 ml-1">Next Fee Due Date</label>
+            <input id="stu-due-date" type="date" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+          </div>
+        </div>
+        <select id="stu-fee-status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+          <option value="Pending">Fee Status: Pending</option>
+          <option value="Paid">Fee Status: Paid</option>
+        </select>
+        <button onclick="saveStudent()" class="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl shadow">
+          Save Student to Cloud
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== SUPABASE CONNECTION ====================
+    const SUPABASE_URL = 'https://dwpmeaxovlfkamcgdrxs.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_lU5D0hXiVIvdc-SxF3z2xg_EiEblrN7';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let appSettings = {
+      coaching_name: 'Sankalp Coaching Center',
+      owner_name: 'Ashish Sir',
+      teacher_name: 'Ashish Sir',
+      upi_id: 'ashish@upi',
+      owner_pin: '1234'
+    };
+    let students = [];
+    let attendanceMap = {};
+    let currentParentStudent = null;
+
+    const showLoader = (show) => document.getElementById('loader').classList.toggle('hidden', !show);
+    const toast = (msg) => {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('opacity-0');
+      setTimeout(() => el.classList.add('opacity-0'), 2600);
+    };
+
+    // ==================== INITIAL LOAD ====================
+    async function initApp() {
+      showLoader(true);
+      const { data: settings } = await db.from('app_settings').select('*').eq('id', 1).single();
+      if (settings) {
+        appSettings = settings;
+        document.getElementById('welcome-coaching-name').textContent = settings.coaching_name;
+        document.getElementById('welcome-owner-name').textContent = `Owner: ${settings.owner_name}`;
+      }
+      showLoader(false);
+    }
+    initApp();
+
+    // ==================== AUTHENTICATION ====================
+    async function loginOwner() {
+      const entered = document.getElementById('owner-pin-input').value.trim();
+      if (entered === appSettings.owner_pin) {
+        document.getElementById('screen-role').classList.add('hidden');
+        document.getElementById('screen-owner').classList.remove('hidden');
+        await loadOwnerData();
+      } else {
+        toast('❌ Incorrect Owner PIN');
+      }
+    }
+
+    async function loginParent() {
+      const phone = document.getElementById('parent-phone-input').value.trim().replace(/\D/g, '').slice(-10);
+      if (phone.length < 10) return toast('Enter valid 10-digit mobile number');
+
+      showLoader(true);
+      const { data, error } = await db.from('students').select('*').ilike('parent_phone', `%${phone}%`).limit(1);
+      showLoader(false);
+
+      if (error || !data || data.length === 0) {
+        return toast('Number not registered. Contact Ashish Sir.');
+      }
+
+      currentParentStudent = data[0];
+      document.getElementById('screen-role').classList.add('hidden');
+      document.getElementById('screen-parent').classList.remove('hidden');
+      await loadParentPortal();
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    // ==================== OWNER DATA & RENDERING ====================
+    async function loadOwnerData() {
+      showLoader(true);
+      document.getElementById('header-coaching').textContent = appSettings.coaching_name;
+      document.getElementById('header-teacher').textContent = `Teacher: ${appSettings.teacher_name} • Owner Mode`;
+
+      // Populate settings form
+      document.getElementById('set-coaching-name').value = appSettings.coaching_name;
+      document.getElementById('set-teacher-name').value = appSettings.teacher_name;
+      document.getElementById('set-upi-id').value = appSettings.upi_id;
+      document.getElementById('set-owner-pin').value = appSettings.owner_pin;
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('today-date-label').textContent = today;
+
+      const [stuRes, attRes, testRes, enqRes] = await Promise.all([
+        db.from('students').select('*').order('created_at', { ascending: false }),
+        db.from('attendance').select('*').eq('att_date', today),
+        db.from('weekly_tests').select('*, students(name, parent_phone)').order('test_date', { ascending: false }).limit(20),
+        db.from('enquiries').select('*').order('created_at', { ascending: false })
+      ]);
+
+      students = stuRes.data || [];
+      attendanceMap = {};
+      (attRes.data || []).forEach(a => attendanceMap[a.student_id] = a.status);
+
+      renderDashboard(enqRes.data || []);
+      renderFees();
+      renderAttendance();
+      renderTests(testRes.data || []);
+      showLoader(false);
+    }
+
+    function renderDashboard(enquiries) {
+      let collected = 0, pending = 0;
+      students.forEach(s => {
+        if (s.fee_status === 'Paid') collected += Number(s.monthly_fee);
+        else pending += Number(s.monthly_fee);
+      });
+
+      document.getElementById('stat-collected').textContent = `₹${collected}`;
+      document.getElementById('stat-pending').textContent = `₹${pending}`;
+      document.getElementById('stat-students').textContent = students.length;
+      document.getElementById('stat-enquiries').textContent = enquiries.length;
+
+      const list = document.getElementById('owner-student-list');
+      if (students.length === 0) {
+        list.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">No students added yet. Tap "+ Add Student" above.</div>`;
+      } else {
+        list.innerHTML = students.map(s => `
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">${s.name} <span class="text-xs font-medium text-indigo-600">(${s.student_class})</span></h3>
+              <p class="text-xs text-slate-500">${s.subject_batch} • 📱 ${s.parent_phone}</p>
+              <p class="text-[11px] font-semibold mt-1 ${s.fee_status === 'Paid' ? 'text-emerald-600' : 'text-rose-600'}">
+                ₹${s.monthly_fee} • ${s.fee_status} (Due: ${s.next_due_date})
+              </p>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <button onclick='openEditStudent(${JSON.stringify(s)})' class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[11px] font-bold">Edit</button>
+              <button onclick="deleteStudent('${s.id}')" class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[11px] font-bold">Del</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const enqList = document.getElementById('owner-enquiries-list');
+      enqList.innerHTML = enquiries.length === 0
+        ? `<p class="text-xs text-slate-400">No referral enquiries yet.</p>`
+        : enquiries.map(e => `
+          <div class="bg-white p-3 rounded-xl border border-amber-100 flex items-center justify-between">
+            <div>
+              <p class="font-bold text-xs text-slate-800">${e.friend_name} (${e.student_class || 'N/A'})</p>
+              <p class="text-[11px] text-slate-500">Referred by: ${e.referred_by_name || 'Parent'}</p>
+            </div>
+            <a href="https://wa.me/91${e.friend_phone}" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white text-[11px] font-bold rounded-lg">WhatsApp</a>
+          </div>
+        `).join('');
+    }
+
+    function renderFees() {
+      const list = document.getElementById('owner-fees-list');
+      list.innerHTML = students.map(s => {
+        const isPaid = s.fee_status === 'Paid';
+        const msg = encodeURIComponent(`Namaste, ${appSettings.coaching_name} (${appSettings.teacher_name}) se reminder: ${s.name} ki ₹${s.monthly_fee} tuition fee (Due Date: ${s.next_due_date}) pending hai. Kripya UPI ID: ${appSettings.upi_id} par payment karein.`);
+        return `
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">${s.name}</h3>
+              <p class="text-xs text-slate-500">Due Date: <span class="font-semibold text-slate-700">${s.next_due_date}</span></p>
+              <p class="text-sm font-extrabold mt-1 ${isPaid ? 'text-emerald-600' : 'text-rose-600'}">₹${s.monthly_fee} • ${s.fee_status}</p>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              ${!isPaid ? `<a href="https://wa.me/91${s.parent_phone}?text=${msg}" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-xl text-center">WhatsApp Alert</a>` : ''}
+              <button onclick="toggleFeeStatus('${s.id}', '${isPaid ? 'Pending' : 'Paid'}')" class="px-3 py-1.5 bg-slate-100 text-slate-800 text-xs font-bold rounded-xl">
+                Mark ${isPaid ? 'Pending' : 'Paid'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAttendance() {
+      const list = document.getElementById('owner-attendance-list');
+      list.innerHTML = students.map(s => {
+        const st = attendanceMap[s.id] || 'P';
+        const absentMsg = encodeURIComponent(`Alert from ${appSettings.coaching_name}: Aapka bachcha ${s.name} aaj class mein ABSENT hai. - ${appSettings.teacher_name}`);
+        return `
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">${s.name}</h3>
+              <p class="text-xs text-slate-500">${s.student_class} • ${s.subject_batch}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="setAtt('${s.id}', 'P')" id="btn-p-${s.id}" class="w-9 h-9 rounded-xl font-bold text-xs ${st === 'P' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}">P</button>
+              <button onclick="setAtt('${s.id}', 'A')" id="btn-a-${s.id}" class="w-9 h-9 rounded-xl font-bold text-xs ${st === 'A' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-500'}">A</button>
+              ${st === 'A' ? `<a href="https://wa.me/91${s.parent_phone}?text=${absentMsg}" target="_blank" class="px-2.5 py-2 bg-rose-100 text-rose-700 rounded-xl text-[11px] font-bold">Alert</a>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setAtt(studentId, status) {
+      attendanceMap[studentId] = status;
+      renderAttendance();
+    }
+
+    async function saveAllAttendance() {
+      showLoader(true);
+      const today = new Date().toISOString().split('T')[0];
+      const rows = students.map(s => ({
+        student_id: s.id,
+        att_date: today,
+        status: attendanceMap[s.id] || 'P'
+      }));
+      if (rows.length > 0) {
+        await db.from('attendance').upsert(rows, { onConflict: 'student_id,att_date' });
+      }
+      showLoader(false);
+      toast('✅ Attendance Saved to Cloud!');
+    }
+
+    function renderTests(tests) {
+      const sel = document.getElementById('test-student-select');
+      sel.innerHTML = students.map(s => `<option value="${s.id}">${s.name} (${s.student_class})</option>`).join('');
+
+      const list = document.getElementById('owner-tests-list');
+      list.innerHTML = tests.map(t => {
+        const sName = t.students?.name || 'Student';
+        const phone = t.students?.parent_phone || '';
+        const msg = encodeURIComponent(`Weekly Test Report (${appSettings.coaching_name}): ${sName} ne "${t.test_title}" mein ${t.marks}/${t.max_marks} marks prapt kiye hain. - ${appSettings.teacher_name}`);
+        return `
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900">${sName}</h3>
+              <p class="text-xs text-slate-500">${t.test_title} (${t.test_date})</p>
+              <p class="text-xs font-extrabold text-indigo-600 mt-0.5">Score: ${t.marks} / ${t.max_marks}</p>
+            </div>
+            ${phone ? `<a href="https://wa.me/91${phone}?text=${msg}" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-xl">Share</a>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== OWNER ACTIONS ====================
+    function openAddStudentModal() {
+      document.getElementById('modal-student-title').textContent = 'Add New Student';
+      document.getElementById('edit-student-id').value = '';
+      document.getElementById('stu-name').value = '';
+      document.getElementById('stu-class').value = '';
+      document.getElementById('stu-subject').value = '';
+      document.getElementById('stu-phone').value = '';
+      document.getElementById('stu-fee').value = '1000';
+      const nextWeek = new Date(Date.now() + 5 * 86400000).toISOString().split('T')[0];
+      document.getElementById('stu-due-date').value = nextWeek;
+      document.getElementById('stu-fee-status').value = 'Pending';
+      document.getElementById('modal-student').classList.remove('hidden');
+    }
+
+    function openEditStudent(s) {
+      document.getElementById('modal-student-title').textContent = 'Edit Student';
+      document.getElementById('edit-student-id').value = s.id;
+      document.getElementById('stu-name').value = s.name;
+      document.getElementById('stu-class').value = s.student_class;
+      document.getElementById('stu-subject').value = s.subject_batch;
+      document.getElementById('stu-phone').value = s.parent_phone;
+      document.getElementById('stu-fee').value = s.monthly_fee;
+      document.getElementById('stu-due-date').value = s.next_due_date;
+      document.getElementById('stu-fee-status').value = s.fee_status;
+      document.getElementById('modal-student').classList.remove('hidden');
+    }
+
+    function closeStudentModal() {
+      document.getElementById('modal-student').classList.add('hidden');
+    }
+
+    async function saveStudent() {
+      const id = document.getElementById('edit-student-id').value;
+      const payload = {
+        name: document.getElementById('stu-name').value.trim(),
+        student_class: document.getElementById('stu-class').value.trim(),
+        subject_batch: document.getElementById('stu-subject').value.trim(),
+        parent_phone: document.getElementById('stu-phone').value.trim().replace(/\D/g, '').slice(-10),
+        monthly_fee: Number(document.getElementById('stu-fee').value) || 1000,
+        next_due_date: document.getElementById('stu-due-date').value,
+        fee_status: document.getElementById('stu-fee-status').value
+      };
+
+      if (!payload.name || payload.parent_phone.length < 10) {
+        return toast('Enter valid student name & 10-digit parent number');
+      }
+
+      showLoader(true);
+      if (id) {
+        await db.from('students').update(payload).eq('id', id);
+      } else {
+        await db.from('students').insert([payload]);
+      }
+      closeStudentModal();
+      await loadOwnerData();
+      toast('✅ Student Saved!');
+    }
+
+    async function deleteStudent(id) {
+      if (!confirm('Delete this student permanently?')) return;
+      showLoader(true);
+      await db.from('students').delete().eq('id', id);
+      await loadOwnerData();
+      toast('Student removed');
+    }
+
+    async function toggleFeeStatus(id, newStatus) {
+      showLoader(true);
+      const updates = { fee_status: newStatus };
+      if (newStatus === 'Paid') {
+        const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+        updates.next_due_date = nextMonth;
+      }
+      await db.from('students').update(updates).eq('id', id);
+      await loadOwnerData();
+      toast(`Marked as ${newStatus}`);
+    }
+
+    async function saveHomework() {
+      const batch = document.getElementById('hw-batch').value.trim() || 'All Batches';
+      const title = document.getElementById('hw-title').value.trim();
+      if (!title) return toast('Enter homework details');
+      showLoader(true);
+      await db.from('homework').insert([{ subject_batch: batch, title }]);
+      document.getElementById('hw-title').value = '';
+      showLoader(false);
+      toast('✅ Homework Published!');
+    }
+
+    async function saveTestScore() {
+      const student_id = document.getElementById('test-student-select').value;
+      const test_title = document.getElementById('test-title-input').value.trim() || 'Weekly Test';
+      const marks = Number(document.getElementById('test-marks-input').value);
+      const max_marks = Number(document.getElementById('test-max-input').value) || 100;
+      if (!student_id || isNaN(marks)) return toast('Enter valid test marks');
+
+      showLoader(true);
+      await db.from('weekly_tests').insert([{ student_id, test_title, marks, max_marks }]);
+      document.getElementById('test-marks-input').value = '';
+      await loadOwnerData();
+      toast('✅ Test Score Saved!');
+    }
+
+    async function saveOwnerSettings() {
+      const updates = {
+        coaching_name: document.getElementById('set-coaching-name').value.trim(),
+        teacher_name: document.getElementById('set-teacher-name').value.trim(),
+        upi_id: document.getElementById('set-upi-id').value.trim(),
+        owner_pin: document.getElementById('set-owner-pin').value.trim() || '1234'
+      };
+      showLoader(true);
+      await db.from('app_settings').update(updates).eq('id', 1);
+      appSettings = { ...appSettings, ...updates };
+      await loadOwnerData();
+      toast('🛡️ Secure Settings Updated!');
+    }
+
+    function switchOwnerTab(tab) {
+      ['home', 'fees', 'attendance', 'tests', 'settings'].forEach(t => {
+        document.getElementById(`owner-tab-${t}`).classList.toggle('hidden', t !== tab);
+        const nav = document.getElementById(`nav-${t}`);
+        nav.classList.toggle('text-indigo-600', t === tab);
+        nav.classList.toggle('font-bold', t === tab);
+        nav.classList.toggle('text-slate-400', t !== tab);
+      });
+    }
+
+    // ==================== PARENT PORTAL ====================
+    async function loadParentPortal() {
+      showLoader(true);
+      const s = currentParentStudent;
+      document.getElementById('p-student-name').textContent = s.name;
+      document.getElementById('p-student-meta').textContent = `Class ${s.student_class} • ${s.subject_batch} • Teacher: ${appSettings.teacher_name}`;
+      document.getElementById('p-fee-amount').textContent = `₹${s.monthly_fee}`;
+      document.getElementById('p-due-date').textContent = `Next Fee Payment Date: ${s.next_due_date}`;
+
+      const badge = document.getElementById('p-fee-badge');
+      const upiBtn = document.getElementById('p-upi-btn');
+      if (s.fee_status === 'Paid') {
+        badge.textContent = 'Paid ✓';
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700';
+        upiBtn.classList.add('hidden');
+      } else {
+        badge.textContent = 'Payment Due';
+        badge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700';
+        upiBtn.classList.remove('hidden');
+      }
+
+      const [attRes, hwRes, testRes] = await Promise.all([
+        db.from('attendance').select('*').eq('student_id', s.id).order('att_date', { ascending: false }).limit(15),
+        db.from('homework').select('*').order('hw_date', { ascending: false }).limit(3),
+        db.from('weekly_tests').select('*').eq('student_id', s.id).order('test_date', { ascending: false }).limit(6)
+      ]);
+
+      const atts = attRes.data || [];
+      const presentCount = atts.filter(a => a.status === 'P').length;
+      const pct = atts.length ? Math.round((presentCount / atts.length) * 100) : 100;
+      document.getElementById('p-att-percent').textContent = `${pct}% Present`;
+      document.getElementById('p-att-pills').innerHTML = atts.length === 0
+        ? `<span class="text-xs text-slate-400">Attendance records will appear here.</span>`
+        : atts.map(a => `
+          <div class="px-2.5 py-1.5 rounded-xl text-center shrink-0 ${a.status === 'P' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+            <p class="text-[10px] font-medium">${a.att_date.slice(5)}</p>
+            <p class="text-xs font-extrabold">${a.status}</p>
+          </div>
+        `).join('');
+
+      const hws = hwRes.data || [];
+      document.getElementById('p-homework-list').innerHTML = hws.length === 0
+        ? `<p class="text-slate-400">No homework posted today.</p>`
+        : hws.map(h => `<div class="p-2.5 bg-slate-50 rounded-xl"><span class="font-bold text-slate-800">[${h.subject_batch}]</span> ${h.title}</div>`).join('');
+
+      const tests = testRes.data || [];
+      document.getElementById('p-tests-list').innerHTML = tests.length === 0
+        ? `<p class="text-xs text-slate-400">No weekly test scores uploaded yet.</p>`
+        : tests.map(t => {
+          const scorePct = Math.min(100, Math.round((t.marks / t.max_marks) * 100));
+          return `
+            <div>
+              <div class="flex justify-between text-xs font-bold mb-1">
+                <span>${t.test_title}</span>
+                <span class="text-indigo-600">${t.marks}/${t.max_marks}</span>
+              </div>
+              <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-indigo-600 rounded-full" style="width: ${scorePct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      showLoader(false);
+    }
+
+    function payViaUPI() {
+      const s = currentParentStudent;
+      const upiUrl = `upi://pay?pa=${encodeURIComponent(appSettings.upi_id)}&pn=${encodeURIComponent(appSettings.coaching_name)}&am=${s.monthly_fee}&cu=INR&tn=${encodeURIComponent('Tuition Fee - ' + s.name)}`;
+      window.location.href = upiUrl;
+    }
+
+    async function submitReferral() {
+      const friend_name = document.getElementById('ref-friend-name').value.trim();
+      const friend_phone = document.getElementById('ref-friend-phone').value.trim().replace(/\D/g, '').slice(-10);
+      const student_class = document.getElementById('ref-friend-class').value.trim();
+      if (!friend_name || friend_phone.length < 10) return toast('Enter valid friend name & mobile');
+
+      showLoader(true);
+      await db.from('enquiries').insert([{
+        referred_by_name: `${currentParentStudent.name}'s Parent`,
+        referred_by_phone: currentParentStudent.parent_phone,
+        friend_name,
+        friend_phone,
+        student_class
+      }]);
+      document.getElementById('ref-friend-name').value = '';
+      document.getElementById('ref-friend-phone').value = '';
+      document.getElementById('ref-friend-class').value = '';
+      showLoader(false);
+      toast('🎉 Thank you! Referral sent to Ashish Sir.');
+    }
+  </script>
+</body>
+</html>
