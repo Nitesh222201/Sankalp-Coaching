@@ -3,15 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Sankalp Coaching Center — TuitionDesk</title>
+  <meta name="theme-color" content="#3730a3" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Sankalp Coaching" />
+  <title>Sankalp Coaching Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; user-select: none; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .signature-font { font-family: 'Great Vibes', cursive; }
   </style>
+  <script>
+    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#3730a3"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="900" font-size="220">SC</text></svg>`;
+    const iconUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
+    const manifest = {
+      name: "Sankalp Coaching Center",
+      short_name: "Sankalp App",
+      start_url: window.location.href,
+      display: "standalone",
+      background_color: "#3730a3",
+      theme_color: "#3730a3",
+      icons: [{ src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = URL.createObjectURL(manifestBlob);
+    document.head.appendChild(manifestLink);
+
+    const appleIcon = document.createElement('link');
+    appleIcon.rel = 'apple-touch-icon';
+    appleIcon.href = iconUrl;
+    document.head.appendChild(appleIcon);
+  </script>
 </head>
 <body class="text-slate-800 antialiased selection:bg-indigo-100">
 
@@ -23,30 +51,45 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none text-center max-w-[90%]">
       Action completed
+    </div>
+
+    <!-- REAL APP INSTALL BANNER -->
+    <div id="install-banner" class="hidden fixed bottom-4 left-4 right-4 max-w-md mx-auto z-50 bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0">SC</div>
+        <div>
+          <p class="font-bold text-xs">Install Sankalp Coaching App</p>
+          <p class="text-[11px] text-slate-300">Add to Home Screen for full-screen app</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="installPWA()" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs rounded-xl">Install</button>
+        <button onclick="document.getElementById('install-banner').classList.add('hidden')" class="p-1.5 text-slate-400 text-base">&times;</button>
+      </div>
     </div>
 
     <!-- ROLE SELECTION SCREEN -->
     <div id="screen-role" class="p-6 flex flex-col justify-between min-h-screen bg-gradient-to-b from-indigo-700 via-indigo-800 to-slate-900 text-white">
-      <div class="pt-8 text-center">
+      <div class="pt-6 text-center">
         <div class="w-16 h-16 bg-white/15 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center text-3xl font-extrabold shadow-inner border border-white/20">
           SC
         </div>
         <h1 id="welcome-coaching-name" class="mt-4 text-2xl font-extrabold tracking-tight">Sankalp Coaching Center</h1>
-        <p id="welcome-owner-name" class="text-indigo-200 text-sm mt-1">Director: Ashish Sir</p>
+        <p id="welcome-owner-name" class="text-indigo-200 text-sm mt-1">Owner: Ashish Sir</p>
         <span class="inline-block mt-3 px-3 py-1 bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-semibold rounded-full">
           ● Live Cloud Portal
         </span>
       </div>
 
-      <div class="space-y-4 my-8">
+      <div class="space-y-4 my-6">
         <!-- Owner Login Card -->
         <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-xl">
           <div class="flex items-center justify-between mb-3">
             <div>
               <h2 class="font-bold text-lg text-slate-900">Owner / Teacher Login</h2>
-              <p class="text-xs text-slate-500">Manage students, fees, tests & settings</p>
+              <p class="text-xs text-slate-500">Manage students, ID cards, fees & settings</p>
             </div>
             <span class="text-2xl">🔐</span>
           </div>
@@ -56,32 +99,65 @@
               Login
             </button>
           </div>
+          <div class="mt-2.5 flex justify-end">
+            <button onclick="openForgotPinModal()" class="text-xs font-bold text-indigo-600 hover:underline">
+              Forgot PIN? (Reset via Gmail / Phone OTP)
+            </button>
+          </div>
         </div>
 
-        <!-- Parent Login Card -->
+        <!-- Parent OTP Login Card -->
         <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-xl">
           <div class="flex items-center justify-between mb-3">
             <div>
-              <h2 class="font-bold text-lg text-slate-900">Parent Portal</h2>
-              <p class="text-xs text-slate-500">Check child's attendance, test & fee due date</p>
+              <h2 class="font-bold text-lg text-slate-900">Parent Portal (ID Card & Report)</h2>
+              <p class="text-xs text-slate-500">Verify registered mobile via OTP</p>
             </div>
-            <span class="text-2xl">👨‍👩‍👧</span>
+            <span class="text-2xl">🪪</span>
           </div>
-          <div class="flex gap-2">
-            <input id="parent-phone-input" type="tel" maxlength="10" placeholder="Registered 10-digit Mobile" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600" />
-            <button onclick="loginParent()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-sm rounded-xl transition shrink-0">
-              View
+
+          <!-- Step 1: Mobile Input -->
+          <div id="parent-login-step1" class="space-y-2.5">
+            <div class="flex gap-2">
+              <input id="parent-phone-input" type="tel" maxlength="10" placeholder="Registered 10-digit Mobile" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+              <button onclick="sendParentOTP()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-xs rounded-xl transition shrink-0">
+                Get OTP
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Receive & Verify OTP -->
+          <div id="parent-login-step2" class="hidden space-y-2.5">
+            <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 space-y-2">
+              <p class="font-bold">✅ Number Verified! Apne mobile par valid OTP paane ke liye neeche tap karein:</p>
+              <div class="grid grid-cols-2 gap-2">
+                <a id="p-btn-wa-otp" href="#" target="_blank" class="py-2 px-2 bg-emerald-600 text-white font-bold rounded-lg text-center">
+                  💬 WhatsApp OTP
+                </a>
+                <a id="p-btn-sms-otp" href="#" class="py-2 px-2 bg-slate-800 text-white font-bold rounded-lg text-center">
+                  📩 SMS OTP
+                </a>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <input id="parent-otp-input" type="number" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-600" />
+              <button onclick="verifyParentOTP()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-semibold text-sm rounded-xl transition shrink-0">
+                Verify
+              </button>
+            </div>
+            <button onclick="resetParentLoginStep()" class="text-[11px] text-slate-500 font-semibold underline">
+              Change Mobile Number
             </button>
           </div>
         </div>
       </div>
 
-      <p class="text-center text-xs text-indigo-300/70 pb-2">Powered by TuitionDesk Cloud</p>
+      <p class="text-center text-xs text-indigo-300/70 pb-2">Sankalp Coaching Center • Official App</p>
     </div>
 
     <!-- ==================== OWNER DASHBOARD & TABS ==================== -->
     <div id="screen-owner" class="hidden">
-      <!-- Top Header -->
       <header class="bg-indigo-700 text-white px-4 pt-4 pb-5 rounded-b-3xl shadow-md sticky top-0 z-30">
         <div class="flex items-center justify-between">
           <div>
@@ -96,7 +172,6 @@
 
       <!-- TAB 1: DASHBOARD & STUDENTS -->
       <section id="owner-tab-home" class="p-4 space-y-4">
-        <!-- Stats Grid -->
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
             <p class="text-xs font-medium text-slate-500">Fees Collected</p>
@@ -116,18 +191,15 @@
           </div>
         </div>
 
-        <!-- Add Student Button -->
         <div class="flex items-center justify-between pt-2">
-          <h2 class="font-bold text-slate-800 text-base">Students Directory</h2>
+          <h2 class="font-bold text-slate-800 text-base">Students & ID Cards</h2>
           <button onclick="openAddStudentModal()" class="px-3.5 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl shadow-sm active:scale-95">
             + Add Student
           </button>
         </div>
 
-        <!-- Student List -->
         <div id="owner-student-list" class="space-y-2.5"></div>
 
-        <!-- Referral Enquiries Section -->
         <div class="pt-3">
           <h2 class="font-bold text-slate-800 text-base mb-2">Refer-a-Friend Enquiries</h2>
           <div id="owner-enquiries-list" class="space-y-2"></div>
@@ -148,7 +220,6 @@
 
       <!-- TAB 3: ATTENDANCE & HOMEWORK -->
       <section id="owner-tab-attendance" class="p-4 space-y-4 hidden">
-        <!-- Daily Homework Box -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-2.5">
           <h2 class="font-bold text-slate-800 text-sm">Post Today's Homework</h2>
           <input id="hw-batch" type="text" placeholder="Batch / Class (e.g. Class 10 Maths or All)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
@@ -158,7 +229,6 @@
           </button>
         </div>
 
-        <!-- Attendance Marking -->
         <div class="flex items-center justify-between">
           <h2 class="font-bold text-slate-800 text-sm">Mark Today's Attendance</h2>
           <span id="today-date-label" class="text-xs font-semibold text-indigo-600"></span>
@@ -194,19 +264,31 @@
           <div class="flex items-center gap-2">
             <span class="text-xl">🛡️</span>
             <div>
-              <h2 class="font-bold text-slate-900 text-base">Owner Security & UPI Settings</h2>
-              <p class="text-xs text-slate-500">Only visible in Owner Mode. Saved to Cloud.</p>
+              <h2 class="font-bold text-slate-900 text-base">Owner Security, Gmail & UPI</h2>
+              <p class="text-xs text-slate-500">Save Gmail & Phone for Forgot PIN OTP recovery</p>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Coaching Center Name</label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Coaching Center Name (Shown on ID Card)</label>
             <input id="set-coaching-name" type="text" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium" />
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1">Teacher Name (Shown to Parents)</label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Director / Teacher Name (Signature on ID Card)</label>
             <input id="set-teacher-name" type="text" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium" />
+          </div>
+
+          <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-2xl space-y-3">
+            <p class="text-[11px] font-bold text-indigo-800 uppercase tracking-wide">🔑 PIN Recovery (Gmail & Mobile)</p>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Owner Registered Gmail ID</label>
+              <input id="set-owner-email" type="email" placeholder="e.g. ashishsir@gmail.com" class="w-full px-3.5 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm font-medium" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Owner Registered Mobile (10 digits)</label>
+              <input id="set-owner-phone" type="tel" maxlength="10" placeholder="e.g. 9876543210" class="w-full px-3.5 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm font-medium" />
+            </div>
           </div>
 
           <div>
@@ -220,7 +302,7 @@
           </div>
 
           <button onclick="saveOwnerSettings()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md active:scale-95">
-            Save Secure Settings
+            Save All Settings
           </button>
         </div>
       </section>
@@ -245,21 +327,78 @@
       </nav>
     </div>
 
-    <!-- ==================== PARENT PORTAL SCREEN ==================== -->
+    <!-- ==================== PARENT PORTAL SCREEN (WITH DIGITAL STUDENT ID CARD) ==================== -->
     <div id="screen-parent" class="hidden pb-10">
-      <header class="bg-emerald-700 text-white px-4 pt-4 pb-6 rounded-b-3xl shadow-md">
+      <header class="bg-slate-900 text-white px-4 pt-4 pb-16 rounded-b-3xl shadow-md">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-[11px] uppercase tracking-wider text-emerald-200 font-semibold">Sankalp Coaching Center</p>
-            <h1 id="p-student-name" class="text-xl font-extrabold mt-0.5">Student Name</h1>
-            <p id="p-student-meta" class="text-xs text-emerald-100">Class • Subject • Teacher</p>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-black text-xs">SC</div>
+            <div>
+              <p class="text-xs font-extrabold tracking-tight">Student Digital Profile</p>
+              <p class="text-[10px] text-slate-400">Verified Parent Portal</p>
+            </div>
           </div>
-          <button onclick="logout()" class="px-3 py-1.5 bg-white/15 rounded-lg text-xs font-semibold">Exit</button>
+          <button onclick="logout()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-semibold">Exit</button>
         </div>
       </header>
 
-      <div class="p-4 space-y-4 -mt-3">
-        <!-- Fee Status & Next Due Date Card -->
+      <div class="px-4 -mt-12 space-y-4">
+        <!-- OFFICIAL DIGITAL STUDENT ID CARD -->
+        <div class="bg-white rounded-3xl shadow-xl border border-indigo-100 overflow-hidden relative">
+          <!-- ID Card Top Banner -->
+          <div class="bg-gradient-to-r from-indigo-800 via-indigo-700 to-blue-700 px-4 py-3 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 bg-white text-indigo-800 rounded-xl flex items-center justify-center font-black text-sm shadow">SC</div>
+              <div>
+                <h1 id="id-coaching-name" class="font-extrabold text-sm uppercase tracking-wide leading-tight">Sankalp Coaching Center</h1>
+                <p class="text-[10px] text-indigo-200 font-medium">OFFICIAL STUDENT IDENTITY CARD</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-400/20 border border-emerald-300/40 text-emerald-200 text-[9px] font-bold rounded-full uppercase">Active</span>
+          </div>
+
+          <!-- ID Card Body: Photo & Details -->
+          <div class="p-4 flex gap-3.5 items-center bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] [background-size:12px_12px]">
+            <!-- Student Photo Box -->
+            <div class="w-20 h-24 rounded-2xl bg-indigo-50 border-2 border-indigo-600 shadow-md overflow-hidden shrink-0 flex items-center justify-center">
+              <img id="id-student-photo" src="" alt="Student" class="w-full h-full object-cover hidden" />
+              <span id="id-student-initials" class="text-2xl font-black text-indigo-700">ST</span>
+            </div>
+
+            <!-- Student Details -->
+            <div class="flex-1 min-w-0 space-y-1">
+              <h2 id="p-student-name" class="text-base font-extrabold text-slate-900 truncate">Student Name</h2>
+              <div class="grid grid-cols-2 gap-1 text-[11px]">
+                <div class="bg-slate-100/90 px-2 py-1 rounded-lg">
+                  <span class="text-slate-400 block text-[9px] font-bold uppercase">Reg. No.</span>
+                  <span id="id-reg-no" class="font-extrabold text-indigo-700">SC-2026-01</span>
+                </div>
+                <div class="bg-slate-100/90 px-2 py-1 rounded-lg">
+                  <span class="text-slate-400 block text-[9px] font-bold uppercase">Roll No.</span>
+                  <span id="id-roll-no" class="font-extrabold text-slate-800">01</span>
+                </div>
+              </div>
+              <p id="p-student-meta" class="text-[11px] font-semibold text-slate-600 pt-0.5 truncate">Class 10th • All Subjects</p>
+              <p id="id-parent-phone" class="text-[11px] text-slate-500">📱 +91 9876543210</p>
+            </div>
+          </div>
+
+          <!-- ID Card Footer: Ashish Sir Signature & Stamp -->
+          <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-end justify-between">
+            <div>
+              <p class="text-[9px] font-bold text-slate-400 uppercase">Session 2026-27</p>
+              <p class="text-[10px] font-semibold text-emerald-700">✔ Verified Student Profile</p>
+            </div>
+            <div class="text-right">
+              <p id="id-signature-text" class="signature-font text-2xl text-indigo-900 leading-none pr-1">Ashish Sir</p>
+              <div class="border-t border-slate-400 mt-0.5 pt-0.5">
+                <p class="text-[9px] font-extrabold text-slate-600 uppercase tracking-wider">Director / Authorized Sign</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fee Status & UPI Payment Card -->
         <div class="bg-white rounded-2xl p-4 shadow-md border border-slate-100">
           <div class="flex items-center justify-between">
             <div>
@@ -274,7 +413,7 @@
           </button>
         </div>
 
-        <!-- Attendance Card -->
+        <!-- Attendance Overview -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           <div class="flex items-center justify-between mb-2">
             <h2 class="font-bold text-slate-800 text-sm">Attendance Overview</h2>
@@ -283,13 +422,13 @@
           <div id="p-att-pills" class="flex gap-1.5 overflow-x-auto no-scrollbar py-1"></div>
         </div>
 
-        <!-- Today's Homework -->
+        <!-- Homework -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           <h2 class="font-bold text-slate-800 text-sm mb-2">📚 Latest Homework</h2>
           <div id="p-homework-list" class="space-y-2 text-xs text-slate-600"></div>
         </div>
 
-        <!-- Weekly Test Progress -->
+        <!-- Weekly Tests -->
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           <h2 class="font-bold text-slate-800 text-sm mb-3">📈 Weekly Test Performance</h2>
           <div id="p-tests-list" class="space-y-2.5"></div>
@@ -311,15 +450,82 @@
       </div>
     </div>
 
-    <!-- ADD / EDIT STUDENT MODAL -->
-    <div id="modal-student" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden flex items-end sm:items-center justify-center p-4">
-      <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl">
+    <!-- ==================== FORGOT PIN / OTP MODAL ==================== -->
+    <div id="modal-forgot-pin" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between">
-          <h3 id="modal-student-title" class="font-extrabold text-base text-slate-900">Add New Student</h3>
+          <h3 class="font-extrabold text-base text-slate-900">🔑 Reset Owner PIN via OTP</h3>
+          <button onclick="closeForgotPinModal()" class="text-slate-400 text-2xl font-bold leading-none">&times;</button>
+        </div>
+
+        <div id="fp-step-1" class="space-y-3">
+          <p class="text-xs text-slate-500">Apna registered <b>Gmail ID</b> ya <b>10-digit Mobile Number</b> dalein:</p>
+          <input id="fp-identifier" type="text" placeholder="Registered Gmail ID or Mobile Number" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium" />
+          <button onclick="generateAndSendOTP()" class="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl shadow">
+            Send OTP to Gmail & Phone
+          </button>
+        </div>
+
+        <div id="fp-step-2" class="hidden space-y-3">
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 space-y-2">
+            <p class="font-bold">✅ OTP Generated! Apne Gmail aur Phone par OTP bhejne ke liye neeche tap karein:</p>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <a id="btn-send-gmail-otp" href="#" target="_blank" class="py-2 px-2.5 bg-rose-600 text-white font-bold rounded-xl text-center text-[11px]">
+                📧 Receive on Gmail
+              </a>
+              <a id="btn-send-wa-otp" href="#" target="_blank" class="py-2 px-2.5 bg-emerald-600 text-white font-bold rounded-xl text-center text-[11px]">
+                💬 Receive on Phone
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Enter 6-Digit OTP</label>
+            <input id="fp-otp-input" type="number" placeholder="Enter 6-digit OTP" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold tracking-widest" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Set New Owner PIN (4-6 digits)</label>
+            <input id="fp-new-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Enter New PIN" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold tracking-widest" />
+          </div>
+
+          <button onclick="verifyOTPAndResetPIN()" class="w-full py-3 bg-emerald-600 text-white font-bold text-sm rounded-xl shadow">
+            Verify OTP & Save New PIN
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== ADD / EDIT STUDENT MODAL (WITH PHOTO, REG NO, ROLL NO) ==================== -->
+    <div id="modal-student" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden flex items-end sm:items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 shadow-2xl my-auto">
+        <div class="flex items-center justify-between">
+          <h3 id="modal-student-title" class="font-extrabold text-base text-slate-900">Add Student & ID Card</h3>
           <button onclick="closeStudentModal()" class="text-slate-400 text-xl font-bold">&times;</button>
         </div>
         <input type="hidden" id="edit-student-id" />
-        <input id="stu-name" type="text" placeholder="Student Full Name" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
+        <input type="hidden" id="stu-photo-data" />
+
+        <!-- Student Photo Upload -->
+        <div class="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded-2xl">
+          <div class="w-14 h-16 rounded-xl bg-indigo-100 border border-indigo-300 overflow-hidden flex items-center justify-center shrink-0">
+            <img id="stu-photo-preview" src="" class="w-full h-full object-cover hidden" />
+            <span id="stu-photo-placeholder" class="text-xl">📷</span>
+          </div>
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">Student ID Card Photo</label>
+            <input id="stu-photo-file" type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="text-[11px] text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white" />
+          </div>
+        </div>
+
+        <input id="stu-name" type="text" placeholder="Student Full Name" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium" />
+
+        <!-- Reg No & Roll No -->
+        <div class="grid grid-cols-2 gap-2">
+          <input id="stu-reg-no" type="text" placeholder="Reg. No (e.g. SC-101)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" />
+          <input id="stu-roll-no" type="text" placeholder="Roll No (e.g. 01)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" />
+        </div>
+
         <div class="grid grid-cols-2 gap-2">
           <input id="stu-class" type="text" placeholder="Class (e.g. 10th)" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
           <input id="stu-subject" type="text" placeholder="Subject / Batch" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" />
@@ -340,13 +546,34 @@
           <option value="Paid">Fee Status: Paid</option>
         </select>
         <button onclick="saveStudent()" class="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl shadow">
-          Save Student to Cloud
+          Save Student & Generate ID Card
         </button>
       </div>
     </div>
   </div>
 
   <script>
+    // ==================== PWA AUTO-INSTALL HANDLER ====================
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-banner').classList.remove('hidden');
+    });
+
+    async function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('install-banner').classList.add('hidden');
+        }
+        deferredPrompt = null;
+      } else {
+        toast('Tap browser menu (⋮) -> "Add to Home screen"');
+      }
+    }
+
     // ==================== SUPABASE CONNECTION ====================
     const SUPABASE_URL = 'https://dwpmeaxovlfkamcgdrxs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_lU5D0hXiVIvdc-SxF3z2xg_EiEblrN7';
@@ -357,26 +584,30 @@
       owner_name: 'Ashish Sir',
       teacher_name: 'Ashish Sir',
       upi_id: 'ashish@upi',
-      owner_pin: '1234'
+      owner_pin: '1234',
+      owner_email: '',
+      owner_phone: ''
     };
     let students = [];
     let attendanceMap = {};
     let currentParentStudent = null;
+    let pendingParentStudent = null;
+    let parentGeneratedOTP = null;
+    let ownerGeneratedOTP = null;
 
     const showLoader = (show) => document.getElementById('loader').classList.toggle('hidden', !show);
     const toast = (msg) => {
       const el = document.getElementById('toast');
       el.textContent = msg;
       el.classList.remove('opacity-0');
-      setTimeout(() => el.classList.add('opacity-0'), 2600);
+      setTimeout(() => el.classList.add('opacity-0'), 3000);
     };
 
-    // ==================== INITIAL LOAD ====================
     async function initApp() {
       showLoader(true);
       const { data: settings } = await db.from('app_settings').select('*').eq('id', 1).single();
       if (settings) {
-        appSettings = settings;
+        appSettings = { ...appSettings, ...settings };
         document.getElementById('welcome-coaching-name').textContent = settings.coaching_name;
         document.getElementById('welcome-owner-name').textContent = `Owner: ${settings.owner_name}`;
       }
@@ -384,7 +615,157 @@
     }
     initApp();
 
-    // ==================== AUTHENTICATION ====================
+    // ==================== PHOTO COMPRESSION FOR FAST CLOUD SAVE ====================
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 240;
+          const scale = maxW / img.width;
+          canvas.width = maxW;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          document.getElementById('stu-photo-data').value = compressedBase64;
+          const prev = document.getElementById('stu-photo-preview');
+          prev.src = compressedBase64;
+          prev.classList.remove('hidden');
+          document.getElementById('stu-photo-placeholder').classList.add('hidden');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ==================== PARENT MOBILE + OTP LOGIN ====================
+    async function sendParentOTP() {
+      const phone = document.getElementById('parent-phone-input').value.trim().replace(/\D/g, '').slice(-10);
+      if (phone.length < 10) return toast('Valid 10-digit mobile number dalein');
+
+      showLoader(true);
+      const { data, error } = await db.from('students').select('*').ilike('parent_phone', `%${phone}%`).limit(1);
+      showLoader(false);
+
+      if (error || !data || data.length === 0) {
+        return toast('❌ Yeh number registered nahi hai. Ashish Sir se sampark karein.');
+      }
+
+      pendingParentStudent = data[0];
+      parentGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      const otpMsg = `Sankalp Coaching Center: Aapka Parent Portal Login OTP hai: ${parentGeneratedOTP}. (${pendingParentStudent.name})`;
+
+      document.getElementById('p-btn-wa-otp').href = `https://wa.me/91${phone}?text=${encodeURIComponent(otpMsg)}`;
+      document.getElementById('p-btn-sms-otp').href = `sms:+91${phone}?body=${encodeURIComponent(otpMsg)}`;
+
+      document.getElementById('parent-login-step1').classList.add('hidden');
+      document.getElementById('parent-login-step2').classList.remove('hidden');
+      toast('✅ OTP Generated! WhatsApp ya SMS button par tap karke OTP dekhein.');
+    }
+
+    async function verifyParentOTP() {
+      const entered = document.getElementById('parent-otp-input').value.trim();
+      if (!parentGeneratedOTP || entered !== parentGeneratedOTP) {
+        return toast('❌ Galat OTP! Dobara check karein.');
+      }
+
+      currentParentStudent = pendingParentStudent;
+      parentGeneratedOTP = null;
+      document.getElementById('screen-role').classList.add('hidden');
+      document.getElementById('screen-parent').classList.remove('hidden');
+      await loadParentPortal();
+    }
+
+    function resetParentLoginStep() {
+      parentGeneratedOTP = null;
+      pendingParentStudent = null;
+      document.getElementById('parent-otp-input').value = '';
+      document.getElementById('parent-login-step2').classList.add('hidden');
+      document.getElementById('parent-login-step1').classList.remove('hidden');
+    }
+
+    // ==================== FORGOT PIN / OWNER OTP LOGIC ====================
+    function openForgotPinModal() {
+      document.getElementById('fp-step-1').classList.remove('hidden');
+      document.getElementById('fp-step-2').classList.add('hidden');
+      document.getElementById('fp-identifier').value = '';
+      document.getElementById('fp-otp-input').value = '';
+      document.getElementById('fp-new-pin').value = '';
+      document.getElementById('modal-forgot-pin').classList.remove('hidden');
+    }
+
+    function closeForgotPinModal() {
+      document.getElementById('modal-forgot-pin').classList.add('hidden');
+    }
+
+    function generateAndSendOTP() {
+      const input = document.getElementById('fp-identifier').value.trim().toLowerCase();
+      const savedEmail = (appSettings.owner_email || '').trim().toLowerCase();
+      const savedPhone = (appSettings.owner_phone || '').replace(/\D/g, '').slice(-10);
+      const cleanInputPhone = input.replace(/\D/g, '').slice(-10);
+
+      if (!savedEmail && !savedPhone) {
+        return toast('Pehle Owner Settings mein Gmail ya Mobile save karein!');
+      }
+
+      const emailMatched = savedEmail && input === savedEmail;
+      const phoneMatched = savedPhone && cleanInputPhone.length === 10 && cleanInputPhone === savedPhone;
+
+      if (!emailMatched && !phoneMatched) {
+        return toast('❌ Yeh Gmail ya Mobile registered nahi hai!');
+      }
+
+      ownerGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      const otpMsg = `Sankalp Coaching Center: Aapka Owner PIN Reset OTP hai: ${ownerGeneratedOTP}. Kripya ise kisi ke saath share na karein.`;
+
+      const gmailBtn = document.getElementById('btn-send-gmail-otp');
+      const waBtn = document.getElementById('btn-send-wa-otp');
+
+      if (savedEmail) {
+        gmailBtn.href = `mailto:${encodeURIComponent(savedEmail)}?subject=${encodeURIComponent('Sankalp Coaching - PIN Reset OTP')}&body=${encodeURIComponent(otpMsg)}`;
+        gmailBtn.classList.remove('opacity-50', 'pointer-events-none');
+      } else {
+        gmailBtn.classList.add('opacity-50', 'pointer-events-none');
+      }
+
+      if (savedPhone) {
+        waBtn.href = `https://wa.me/91${savedPhone}?text=${encodeURIComponent(otpMsg)}`;
+        waBtn.classList.remove('opacity-50', 'pointer-events-none');
+      } else {
+        waBtn.classList.add('opacity-50', 'pointer-events-none');
+      }
+
+      document.getElementById('fp-step-1').classList.add('hidden');
+      document.getElementById('fp-step-2').classList.remove('hidden');
+      toast('✅ Registered Account Verified! OTP bhejein.');
+    }
+
+    async function verifyOTPAndResetPIN() {
+      const enteredOTP = document.getElementById('fp-otp-input').value.trim();
+      const newPin = document.getElementById('fp-new-pin').value.trim();
+
+      if (!ownerGeneratedOTP || enteredOTP !== ownerGeneratedOTP) {
+        return toast('❌ Galat OTP! Dobara check karein.');
+      }
+      if (newPin.length < 4) {
+        return toast('Naya PIN kam se kam 4 digits ka rakhein');
+      }
+
+      showLoader(true);
+      await db.from('app_settings').update({ owner_pin: newPin }).eq('id', 1);
+      appSettings.owner_pin = newPin;
+      ownerGeneratedOTP = null;
+      showLoader(false);
+
+      closeForgotPinModal();
+      toast('🎉 Naya PIN Set Ho Gaya! Ab login karein.');
+    }
+
+    // ==================== OWNER AUTHENTICATION ====================
     async function loginOwner() {
       const entered = document.getElementById('owner-pin-input').value.trim();
       if (entered === appSettings.owner_pin) {
@@ -394,24 +775,6 @@
       } else {
         toast('❌ Incorrect Owner PIN');
       }
-    }
-
-    async function loginParent() {
-      const phone = document.getElementById('parent-phone-input').value.trim().replace(/\D/g, '').slice(-10);
-      if (phone.length < 10) return toast('Enter valid 10-digit mobile number');
-
-      showLoader(true);
-      const { data, error } = await db.from('students').select('*').ilike('parent_phone', `%${phone}%`).limit(1);
-      showLoader(false);
-
-      if (error || !data || data.length === 0) {
-        return toast('Number not registered. Contact Ashish Sir.');
-      }
-
-      currentParentStudent = data[0];
-      document.getElementById('screen-role').classList.add('hidden');
-      document.getElementById('screen-parent').classList.remove('hidden');
-      await loadParentPortal();
     }
 
     function logout() {
@@ -424,11 +787,12 @@
       document.getElementById('header-coaching').textContent = appSettings.coaching_name;
       document.getElementById('header-teacher').textContent = `Teacher: ${appSettings.teacher_name} • Owner Mode`;
 
-      // Populate settings form
-      document.getElementById('set-coaching-name').value = appSettings.coaching_name;
-      document.getElementById('set-teacher-name').value = appSettings.teacher_name;
-      document.getElementById('set-upi-id').value = appSettings.upi_id;
-      document.getElementById('set-owner-pin').value = appSettings.owner_pin;
+      document.getElementById('set-coaching-name').value = appSettings.coaching_name || '';
+      document.getElementById('set-teacher-name').value = appSettings.teacher_name || '';
+      document.getElementById('set-owner-email').value = appSettings.owner_email || '';
+      document.getElementById('set-owner-phone').value = appSettings.owner_phone || '';
+      document.getElementById('set-upi-id').value = appSettings.upi_id || '';
+      document.getElementById('set-owner-pin').value = appSettings.owner_pin || '1234';
 
       const today = new Date().toISOString().split('T')[0];
       document.getElementById('today-date-label').textContent = today;
@@ -467,21 +831,30 @@
       if (students.length === 0) {
         list.innerHTML = `<div class="bg-white p-6 rounded-2xl text-center text-xs text-slate-400">No students added yet. Tap "+ Add Student" above.</div>`;
       } else {
-        list.innerHTML = students.map(s => `
-          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 class="font-bold text-sm text-slate-900">${s.name} <span class="text-xs font-medium text-indigo-600">(${s.student_class})</span></h3>
-              <p class="text-xs text-slate-500">${s.subject_batch} • 📱 ${s.parent_phone}</p>
-              <p class="text-[11px] font-semibold mt-1 ${s.fee_status === 'Paid' ? 'text-emerald-600' : 'text-rose-600'}">
-                ₹${s.monthly_fee} • ${s.fee_status} (Due: ${s.next_due_date})
-              </p>
+        list.innerHTML = students.map((s, idx) => {
+          const reg = s.reg_no || `SC-${101 + idx}`;
+          const roll = s.roll_no || `${idx + 1}`;
+          const avatarHtml = s.photo_url
+            ? `<img src="${s.photo_url}" class="w-11 h-12 rounded-xl object-cover border border-indigo-200 shrink-0" />`
+            : `<div class="w-11 h-12 rounded-xl bg-indigo-100 text-indigo-700 font-extrabold text-sm flex items-center justify-center shrink-0">${s.name.slice(0,2).toUpperCase()}</div>`;
+          return `
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-3 min-w-0">
+              ${avatarHtml}
+              <div class="min-w-0">
+                <h3 class="font-bold text-sm text-slate-900 truncate">${s.name} <span class="text-xs font-medium text-indigo-600">(${s.student_class})</span></h3>
+                <p class="text-[11px] font-semibold text-slate-500">Reg: ${reg} • Roll: ${roll}</p>
+                <p class="text-[11px] font-semibold mt-0.5 ${s.fee_status === 'Paid' ? 'text-emerald-600' : 'text-rose-600'}">
+                  ₹${s.monthly_fee} • ${s.fee_status}
+                </p>
+              </div>
             </div>
-            <div class="flex flex-col gap-1.5">
-              <button onclick='openEditStudent(${JSON.stringify(s)})' class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[11px] font-bold">Edit</button>
+            <div class="flex flex-col gap-1.5 shrink-0">
+              <button onclick='openEditStudent(${JSON.stringify(s).replace(/'/g, "&#39;")})' class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[11px] font-bold">Edit</button>
               <button onclick="deleteStudent('${s.id}')" class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[11px] font-bold">Del</button>
             </div>
           </div>
-        `).join('');
+        `}).join('');
       }
 
       const enqList = document.getElementById('owner-enquiries-list');
@@ -584,11 +957,17 @@
       }).join('');
     }
 
-    // ==================== OWNER ACTIONS ====================
     function openAddStudentModal() {
-      document.getElementById('modal-student-title').textContent = 'Add New Student';
+      document.getElementById('modal-student-title').textContent = 'Add Student & ID Card';
       document.getElementById('edit-student-id').value = '';
+      document.getElementById('stu-photo-data').value = '';
+      document.getElementById('stu-photo-file').value = '';
+      document.getElementById('stu-photo-preview').classList.add('hidden');
+      document.getElementById('stu-photo-placeholder').classList.remove('hidden');
+
       document.getElementById('stu-name').value = '';
+      document.getElementById('stu-reg-no').value = `SC-2026-${101 + students.length}`;
+      document.getElementById('stu-roll-no').value = `${students.length + 1}`;
       document.getElementById('stu-class').value = '';
       document.getElementById('stu-subject').value = '';
       document.getElementById('stu-phone').value = '';
@@ -600,9 +979,24 @@
     }
 
     function openEditStudent(s) {
-      document.getElementById('modal-student-title').textContent = 'Edit Student';
+      document.getElementById('modal-student-title').textContent = 'Edit Student & ID Card';
       document.getElementById('edit-student-id').value = s.id;
+      document.getElementById('stu-photo-data').value = s.photo_url || '';
+      document.getElementById('stu-photo-file').value = '';
+
+      if (s.photo_url) {
+        const prev = document.getElementById('stu-photo-preview');
+        prev.src = s.photo_url;
+        prev.classList.remove('hidden');
+        document.getElementById('stu-photo-placeholder').classList.add('hidden');
+      } else {
+        document.getElementById('stu-photo-preview').classList.add('hidden');
+        document.getElementById('stu-photo-placeholder').classList.remove('hidden');
+      }
+
       document.getElementById('stu-name').value = s.name;
+      document.getElementById('stu-reg-no').value = s.reg_no || '';
+      document.getElementById('stu-roll-no').value = s.roll_no || '';
       document.getElementById('stu-class').value = s.student_class;
       document.getElementById('stu-subject').value = s.subject_batch;
       document.getElementById('stu-phone').value = s.parent_phone;
@@ -620,6 +1014,9 @@
       const id = document.getElementById('edit-student-id').value;
       const payload = {
         name: document.getElementById('stu-name').value.trim(),
+        reg_no: document.getElementById('stu-reg-no').value.trim() || `SC-${Date.now().toString().slice(-4)}`,
+        roll_no: document.getElementById('stu-roll-no').value.trim() || '01',
+        photo_url: document.getElementById('stu-photo-data').value || '',
         student_class: document.getElementById('stu-class').value.trim(),
         subject_batch: document.getElementById('stu-subject').value.trim(),
         parent_phone: document.getElementById('stu-phone').value.trim().replace(/\D/g, '').slice(-10),
@@ -640,7 +1037,7 @@
       }
       closeStudentModal();
       await loadOwnerData();
-      toast('✅ Student Saved!');
+      toast('✅ Student & ID Card Saved!');
     }
 
     async function deleteStudent(id) {
@@ -692,6 +1089,8 @@
       const updates = {
         coaching_name: document.getElementById('set-coaching-name').value.trim(),
         teacher_name: document.getElementById('set-teacher-name').value.trim(),
+        owner_email: document.getElementById('set-owner-email').value.trim().toLowerCase(),
+        owner_phone: document.getElementById('set-owner-phone').value.trim().replace(/\D/g, '').slice(-10),
         upi_id: document.getElementById('set-upi-id').value.trim(),
         owner_pin: document.getElementById('set-owner-pin').value.trim() || '1234'
       };
@@ -699,7 +1098,7 @@
       await db.from('app_settings').update(updates).eq('id', 1);
       appSettings = { ...appSettings, ...updates };
       await loadOwnerData();
-      toast('🛡️ Secure Settings Updated!');
+      toast('🛡️ Settings, Signature & Coaching Name Saved!');
     }
 
     function switchOwnerTab(tab) {
@@ -712,12 +1111,33 @@
       });
     }
 
-    // ==================== PARENT PORTAL ====================
+    // ==================== PARENT PORTAL & DIGITAL ID CARD ====================
     async function loadParentPortal() {
       showLoader(true);
       const s = currentParentStudent;
+
+      // Populate Digital ID Card
+      document.getElementById('id-coaching-name').textContent = appSettings.coaching_name || 'Sankalp Coaching Center';
+      document.getElementById('id-signature-text').textContent = appSettings.teacher_name || 'Ashish Sir';
       document.getElementById('p-student-name').textContent = s.name;
-      document.getElementById('p-student-meta').textContent = `Class ${s.student_class} • ${s.subject_batch} • Teacher: ${appSettings.teacher_name}`;
+      document.getElementById('id-reg-no').textContent = s.reg_no || `SC-${s.id.slice(0,4).toUpperCase()}`;
+      document.getElementById('id-roll-no').textContent = s.roll_no || '01';
+      document.getElementById('p-student-meta').textContent = `Class ${s.student_class} • ${s.subject_batch}`;
+      document.getElementById('id-parent-phone').textContent = `📱 +91 ${s.parent_phone}`;
+
+      const photoImg = document.getElementById('id-student-photo');
+      const initialsSpan = document.getElementById('id-student-initials');
+      if (s.photo_url) {
+        photoImg.src = s.photo_url;
+        photoImg.classList.remove('hidden');
+        initialsSpan.classList.add('hidden');
+      } else {
+        photoImg.classList.add('hidden');
+        initialsSpan.classList.remove('hidden');
+        initialsSpan.textContent = s.name.slice(0, 2).toUpperCase();
+      }
+
+      // Fee Info
       document.getElementById('p-fee-amount').textContent = `₹${s.monthly_fee}`;
       document.getElementById('p-due-date').textContent = `Next Fee Payment Date: ${s.next_due_date}`;
 
