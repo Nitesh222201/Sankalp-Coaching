@@ -4,334 +4,702 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#1e3a8a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="संकल्प कोचिंग" />
   <title>संकल्प कोचिंग क्लासेस - Haripur Bazar, Jaunpur</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; user-select: none; }
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .signature-font { font-family: 'Great Vibes', cursive; }
   </style>
-  <script>
-    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#1e3a8a"/><text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#facc15" font-family="sans-serif" font-weight="900" font-size="220">SC</text></svg>`;
-    const iconUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
-    const manifest = {
-      name: "संकल्प कोचिंग क्लासेस",
-      short_name: "Sankalp App",
-      start_url: window.location.href,
-      display: "standalone",
-      background_color: "#1e3a8a",
-      theme_color: "#1e3a8a",
-      icons: [{ src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
-    };
-    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const manifestLink = document.createElement('link');
-    manifestLink.rel = 'manifest';
-    manifestLink.href = URL.createObjectURL(manifestBlob);
-    document.head.appendChild(manifestLink);
-
-    const appleIcon = document.createElement('link');
-    appleIcon.rel = 'apple-touch-icon';
-    appleIcon.href = iconUrl;
-    document.head.appendChild(appleIcon);
-  </script>
 </head>
-<body class="text-slate-800 antialiased selection:bg-indigo-100">
-
+<body class="text-slate-800">
   <div id="app" class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-xl relative pb-24">
-    <!-- Loading Overlay -->
-    <div id="loader" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
-      <div class="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-3 text-sm font-semibold text-slate-700">Connecting to Sankalp Cloud...</p>
+    <div id="loader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center hidden">
+      <div class="w-10 h-10 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
+      <p class="mt-3 text-sm font-bold text-slate-700">Connecting...</p>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none text-center max-w-[90%]">
-      Action completed
-    </div>
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 opacity-0 pointer-events-none text-center max-w-[90%]"></div>
 
-    <!-- ==================== AUTO-EXPIRE FESTIVAL / HOLIDAY POPUP MODAL ==================== -->
-    <div id="modal-event-popup" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
-      <div class="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-300 animate-[fadeIn_0.25s_ease-out]">
-        <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 p-5 text-white text-center relative">
-          <button onclick="closeEventPopup()" class="absolute top-3 right-3 w-7 h-7 bg-black/20 rounded-full text-white font-bold text-base flex items-center justify-center">&times;</button>
-          <div id="popup-event-icon" class="text-4xl mb-1">🪔</div>
-          <span id="popup-event-badge" class="px-2.5 py-0.5 bg-white/20 rounded-full text-[10px] font-extrabold uppercase tracking-wider">Festival & Holiday Notice</span>
-          <h2 id="popup-event-title" class="text-xl font-black mt-1.5 leading-tight">Happy Diwali!</h2>
+    <!-- EVENT / HOLIDAY POPUP -->
+    <div id="modal-event-popup" class="fixed inset-0 bg-slate-950/75 z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border-2 border-amber-300">
+        <div class="bg-gradient-to-r from-amber-500 to-rose-600 p-5 text-white text-center relative">
+          <button type="button" onclick="closeEventPopup()" class="absolute top-3 right-3 w-7 h-7 bg-black/20 rounded-full text-white font-bold">&times;</button>
+          <div id="popup-event-icon" class="text-4xl mb-1">🎉</div>
+          <h2 id="popup-event-title" class="text-xl font-black mt-1">Holiday Notice</h2>
         </div>
-
         <div class="p-5 space-y-3 text-center">
-          <p id="popup-event-message" class="text-xs font-medium text-slate-700 leading-relaxed whitespace-pre-line">
-            Coaching classes band rahengi.
-          </p>
-
-          <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 space-y-1">
-            <p class="text-[11px] font-extrabold text-rose-700">📅 Coaching Band (Holiday): <span id="popup-event-dates" class="text-slate-900">13 Nov - 14 Nov</span></p>
-            <p class="text-[11px] font-extrabold text-emerald-700">🏫 Coaching Reopen Date: <span id="popup-event-reopen" class="text-slate-900">15 Nov 2026</span></p>
+          <p id="popup-event-message" class="text-xs font-medium text-slate-700 whitespace-pre-line"></p>
+          <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3 space-y-1 text-[11px] font-extrabold">
+            <p class="text-rose-700">📅 Coaching Band: <span id="popup-event-dates" class="text-slate-900"></span></p>
+            <p class="text-emerald-700">🏫 Reopen Date: <span id="popup-event-reopen" class="text-slate-900"></span></p>
           </div>
-
           <p class="text-[10px] font-bold text-slate-400">संकल्प कोचिंग क्लासेस • संचालक: आशीष प्रजापति</p>
-
-          <button onclick="closeEventPopup()" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow">
-            Theek Hai (Close Notice)
-          </button>
+          <button type="button" onclick="closeEventPopup()" class="w-full py-2.5 bg-blue-900 text-white font-bold text-xs rounded-xl">Close Notice</button>
         </div>
       </div>
     </div>
 
-    <!-- REAL APP INSTALL BANNER -->
-    <div id="install-banner" class="hidden fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40 bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-blue-800 text-yellow-300 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0">SC</div>
-        <div>
-          <p class="font-bold text-xs">Install संकल्प कोचिंग App</p>
-          <p class="text-[11px] text-slate-300">Add to Home Screen for full-screen app</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <button onclick="installPWA()" class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-xs rounded-xl">Install</button>
-        <button onclick="document.getElementById('install-banner').classList.add('hidden')" class="p-1.5 text-slate-400 text-base">&times;</button>
-      </div>
-    </div>
-
-    <!-- ==================== ROLE SELECTION SCREEN (COACHING BANNER THEME) ==================== -->
+    <!-- ROLE SCREEN -->
     <div id="screen-role" class="p-5 flex flex-col justify-between min-h-screen bg-gradient-to-b from-blue-900 via-indigo-900 to-slate-950 text-white">
-      <div class="bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 text-blue-950 rounded-3xl p-4 shadow-2xl border-2 border-yellow-200 text-center space-y-1.5">
-        <div class="flex items-center justify-center gap-2">
-          <span class="px-2.5 py-0.5 bg-blue-900 text-yellow-300 text-[10px] font-extrabold rounded-full uppercase">NCERT पैटर्न • कक्षा 1 से 8 तक</span>
-        </div>
-        <h1 id="welcome-coaching-name" class="text-2xl font-black tracking-tight text-blue-950 leading-tight">संकल्प कोचिंग क्लासेस</h1>
+      <div class="bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-400 text-blue-950 rounded-3xl p-4 shadow-2xl border-2 border-yellow-200 text-center space-y-1">
+        <span class="px-2.5 py-0.5 bg-blue-900 text-yellow-300 text-[10px] font-extrabold rounded-full">NCERT पैटर्न • कक्षा 1 से 8 तक</span>
+        <h1 id="welcome-coaching-name" class="text-2xl font-black text-blue-950">संकल्प कोचिंग क्लासेस</h1>
         <p class="text-xs font-extrabold bg-rose-600 text-white inline-block px-3 py-0.5 rounded-full">विषय: गणित, विज्ञान, अंग्रेजी</p>
-        <div class="text-[11px] font-bold text-slate-900 pt-1 space-y-0.5">
-          <p>⏰ सुबह 6 से 9 बजे तक | शाम 03:20 से 6 बजे तक</p>
-          <p>📍 पता: हरीपुर बाजार, बदलापुर रोड, जौनपुर</p>
-          <p class="text-blue-900 font-extrabold pt-0.5">संचालक: <span id="welcome-owner-name">आशीष प्रजापति</span> • 📞 9569978125</p>
-        </div>
+        <p class="text-[11px] font-bold text-slate-900 pt-1">⏰ सुबह 6 से 9 बजे | शाम 03:20 से 6 बजे</p>
+        <p class="text-[11px] font-bold text-slate-900">📍 हरीपुर बाजार, बदलापुर रोड, जौनपुर</p>
+        <p class="text-[11px] text-blue-900 font-extrabold">संचालक: आशीष प्रजापति • 📞 9569978125</p>
       </div>
 
-      <div class="space-y-4 my-5">
-        <!-- Owner Login Card -->
+      <div class="space-y-4 my-4">
         <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-xl">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h2 class="font-bold text-base text-slate-900">Director / Owner Login</h2>
-              <p class="text-xs text-slate-500">Attendance, Homework, Events & Fees</p>
-            </div>
-            <span class="text-2xl">🔐</span>
-          </div>
+          <h2 class="font-bold text-base text-slate-900">🔐 Director / Owner Login</h2>
+          <p class="text-xs text-slate-500 mb-3">Attendance, Homework, Events & Fees</p>
           <div class="flex gap-2">
-            <input id="owner-pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="Enter PIN (Default: 1234)" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-600" />
-            <button onclick="loginOwner()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-semibold text-sm rounded-xl transition shrink-0">
-              Login
-            </button>
+            <input id="owner-pin-input" type="password" inputmode="numeric" maxlength="6" placeholder="Enter PIN (1234)" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold" />
+            <button type="button" onclick="loginOwner()" class="px-5 py-2.5 bg-blue-900 text-white font-semibold text-sm rounded-xl shrink-0">Login</button>
           </div>
-          <div class="mt-2.5 flex justify-end">
-            <button onclick="openForgotPinModal()" class="text-xs font-bold text-blue-800 hover:underline">
-              Forgot PIN? (Reset via Gmail / Phone OTP)
-            </button>
+          <div class="mt-2 text-right">
+            <button type="button" onclick="openForgotPinModal()" class="text-xs font-bold text-blue-800 underline">Forgot PIN? (Gmail / Phone OTP)</button>
           </div>
         </div>
 
-        <!-- Parent OTP Login Card -->
         <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-xl">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h2 class="font-bold text-base text-slate-900">Parent Portal (ID Card & Homework)</h2>
-              <p class="text-xs text-slate-500">Registered mobile number se OTP login karein</p>
-            </div>
-            <span class="text-2xl">🪪</span>
+          <h2 class="font-bold text-base text-slate-900">🪪 Parent Portal (ID Card & Homework)</h2>
+          <p class="text-xs text-slate-500 mb-3">Registered mobile number se OTP login karein</p>
+          <div id="parent-login-step1" class="flex gap-2">
+            <input id="parent-phone-input" type="tel" maxlength="10" placeholder="10-digit Mobile Number" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold" />
+            <button type="button" onclick="sendParentOTP()" class="px-4 py-2.5 bg-emerald-600 text-white font-semibold text-xs rounded-xl shrink-0">Get OTP</button>
           </div>
-
-          <div id="parent-login-step1" class="space-y-2.5">
-            <div class="flex gap-2">
-              <input id="parent-phone-input" type="tel" maxlength="10" placeholder="Registered 10-digit Mobile" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-600" />
-              <button onclick="sendParentOTP()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold text-xs rounded-xl transition shrink-0">
-                Get OTP
-              </button>
-            </div>
-          </div>
-
           <div id="parent-login-step2" class="hidden space-y-2.5">
             <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 space-y-2">
-              <p class="font-bold">✅ Number Verified! Apne mobile par OTP paane ke liye tap karein:</p>
+              <p class="font-bold">✅ Number Verified! OTP paane ke liye tap karein:</p>
               <div class="grid grid-cols-2 gap-2">
-                <a id="p-btn-wa-otp" href="#" target="_blank" class="py-2 px-2 bg-emerald-600 text-white font-bold rounded-lg text-center">
-                  💬 WhatsApp OTP
-                </a>
-                <a id="p-btn-sms-otp" href="#" class="py-2 px-2 bg-slate-800 text-white font-bold rounded-lg text-center">
-                  📩 SMS OTP
-                </a>
+                <a id="p-btn-wa-otp" href="#" target="_blank" class="py-2 bg-emerald-600 text-white font-bold rounded-lg text-center">💬 WhatsApp OTP</a>
+                <a id="p-btn-sms-otp" href="#" class="py-2 bg-slate-800 text-white font-bold rounded-lg text-center">📩 SMS OTP</a>
               </div>
             </div>
-
             <div class="flex gap-2">
-              <input id="parent-otp-input" type="number" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit OTP" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-emerald-600" />
-              <button onclick="verifyParentOTP()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-semibold text-sm rounded-xl transition shrink-0">
-                Verify
-              </button>
+              <input id="parent-otp-input" type="number" placeholder="Enter 6-digit OTP" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold" />
+              <button type="button" onclick="verifyParentOTP()" class="px-5 py-2.5 bg-blue-900 text-white font-semibold text-sm rounded-xl">Verify</button>
             </div>
-            <button onclick="resetParentLoginStep()" class="text-[11px] text-slate-500 font-semibold underline">
-              Change Mobile Number
-            </button>
+            <button type="button" onclick="resetParentLoginStep()" class="text-[11px] text-slate-500 underline">Change Number</button>
           </div>
         </div>
       </div>
-
-      <p class="text-center text-[11px] text-amber-200/80 pb-1">संकल्प कोचिंग क्लासेस • हरीपुर बाजार, जौनपुर</p>
+      <p class="text-center text-[11px] text-amber-200/80">संकल्प कोचिंग क्लासेस • जौनपुर</p>
     </div>
 
-    <!-- ==================== OWNER DASHBOARD & TABS ==================== -->
+    <!-- OWNER SCREEN -->
     <div id="screen-owner" class="hidden">
-      <header class="bg-blue-900 text-white px-4 pt-4 pb-5 rounded-b-3xl shadow-md sticky top-0 z-30">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 id="header-coaching" class="font-extrabold text-lg leading-tight text-yellow-300">संकल्प कोचिंग क्लासेस</h1>
-            <p id="header-teacher" class="text-xs text-blue-100">संचालक: आशीष प्रजापति • Owner Mode</p>
-          </div>
-          <button onclick="logout()" class="px-3 py-1.5 bg-white/15 hover:bg-white/25 rounded-lg text-xs font-semibold">
-            Logout
-          </button>
+      <header class="bg-blue-900 text-white px-4 py-4 rounded-b-3xl shadow-md sticky top-0 z-30 flex items-center justify-between">
+        <div>
+          <h1 id="header-coaching" class="font-extrabold text-base text-yellow-300">संकल्प कोचिंग क्लासेस</h1>
+          <p id="header-teacher" class="text-[11px] text-blue-100">संचालक: आशीष प्रजापति</p>
         </div>
+        <button type="button" onclick="logout()" class="px-3 py-1.5 bg-white/15 rounded-lg text-xs font-semibold">Logout</button>
       </header>
 
-      <!-- TAB 1: DASHBOARD & STUDENTS -->
+      <!-- TAB 1: STUDENTS -->
       <section id="owner-tab-home" class="p-4 space-y-4">
         <div class="grid grid-cols-2 gap-3">
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <p class="text-xs font-medium text-slate-500">Fees Collected</p>
-            <p id="stat-collected" class="text-xl font-extrabold text-emerald-600 mt-1">₹0</p>
-          </div>
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <p class="text-xs font-medium text-slate-500">Fees Pending</p>
-            <p id="stat-pending" class="text-xl font-extrabold text-rose-600 mt-1">₹0</p>
-          </div>
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <p class="text-xs font-medium text-slate-500">Total Students</p>
-            <p id="stat-students" class="text-xl font-extrabold text-blue-900 mt-1">0</p>
-          </div>
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <p class="text-xs font-medium text-slate-500">Referral Leads</p>
-            <p id="stat-enquiries" class="text-xl font-extrabold text-amber-600 mt-1">0</p>
-          </div>
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm"><p class="text-xs text-slate-500">Fees Collected</p><p id="stat-collected" class="text-lg font-extrabold text-emerald-600">₹0</p></div>
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm"><p class="text-xs text-slate-500">Fees Pending</p><p id="stat-pending" class="text-lg font-extrabold text-rose-600">₹0</p></div>
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm"><p class="text-xs text-slate-500">Students</p><p id="stat-students" class="text-lg font-extrabold text-blue-900">0</p></div>
+          <div class="bg-white p-3.5 rounded-2xl shadow-sm"><p class="text-xs text-slate-500">Referrals</p><p id="stat-enquiries" class="text-lg font-extrabold text-amber-600">0</p></div>
         </div>
-
-        <div class="flex items-center justify-between pt-2">
-          <h2 class="font-bold text-slate-800 text-base">Students & ID Cards</h2>
-          <button onclick="openAddStudentModal()" class="px-3.5 py-2 bg-blue-900 text-white text-xs font-bold rounded-xl shadow-sm active:scale-95">
-            + Add Student
-          </button>
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-sm">Students & ID Cards</h2>
+          <button type="button" onclick="openAddStudentModal()" class="px-3.5 py-2 bg-blue-900 text-white text-xs font-bold rounded-xl">+ Add Student</button>
         </div>
-
         <div id="owner-student-list" class="space-y-2.5"></div>
-
-        <div class="pt-3">
-          <h2 class="font-bold text-slate-800 text-base mb-2">Refer-a-Friend Enquiries</h2>
-          <div id="owner-enquiries-list" class="space-y-2"></div>
-        </div>
+        <h2 class="font-bold text-sm pt-2">Referral Enquiries</h2>
+        <div id="owner-enquiries-list" class="space-y-2"></div>
       </section>
 
       <!-- TAB 2: FEES -->
-      <section id="owner-tab-fees" class="p-4 space-y-4 hidden">
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between">
-          <div>
-            <h2 class="font-bold text-amber-900 text-sm">Pending Fee Reminders</h2>
-            <p class="text-xs text-amber-700 mt-0.5">Send WhatsApp alert with due date & UPI</p>
-          </div>
-          <span class="text-2xl">📲</span>
-        </div>
+      <section id="owner-tab-fees" class="p-4 space-y-3 hidden">
         <div id="owner-fees-list" class="space-y-3"></div>
       </section>
 
-      <!-- TAB 3: CLASS-WISE ATTENDANCE & BATCH-WISE HOMEWORK -->
-      <section id="owner-tab-attendance" class="p-4 space-y-5 hidden">
-        <!-- Section A: Class-Wise Attendance -->
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="font-extrabold text-slate-900 text-base">1. Class-Wise Attendance</h2>
-              <p class="text-[11px] text-slate-500">Class chunein aur P / A mark karke Save karein</p>
-            </div>
-            <span id="today-date-label" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold"></span>
-          </div>
-
-          <!-- Class Filter Tabs (Class 1, Class 2 ... Class 8) -->
-          <div id="att-class-tabs" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1"></div>
-
-          <div id="owner-attendance-list" class="space-y-2.5"></div>
-
-          <button onclick="saveAllAttendance()" class="w-full py-3.5 bg-blue-900 hover:bg-blue-800 text-white font-extrabold text-sm rounded-2xl shadow-lg active:scale-95">
-            ✅ Save Class Attendance
-          </button>
-
-          <!-- Absent Students Notification Box -->
-          <div id="absent-summary-box" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-3.5 space-y-2">
-            <p class="text-xs font-extrabold text-rose-800">⚠️ Is Class ke Absent Students (Parent App par alert chala gaya hai):</p>
-            <div id="absent-whatsapp-list" class="space-y-1.5"></div>
-          </div>
+      <!-- TAB 3: CLASS-WISE ATTENDANCE & HOMEWORK -->
+      <section id="owner-tab-attendance" class="p-4 space-y-4 hidden">
+        <div class="flex items-center justify-between">
+          <h2 class="font-extrabold text-sm">1. Class-Wise Attendance</h2>
+          <span id="today-date-label" class="text-xs font-bold text-blue-900"></span>
+        </div>
+        <div id="att-class-tabs" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1"></div>
+        <div id="owner-attendance-list" class="space-y-2"></div>
+        <button type="button" onclick="saveAllAttendance()" class="w-full py-3 bg-blue-900 text-white font-extrabold text-sm rounded-2xl shadow">✅ Save Class Attendance</button>
+        <div id="absent-summary-box" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-3 space-y-1.5">
+          <p class="text-xs font-extrabold text-rose-800">⚠️ Absent Students (Parent Alert Sent):</p>
+          <div id="absent-whatsapp-list" class="space-y-1.5"></div>
         </div>
 
-        <hr class="border-slate-200" />
-
-        <!-- Section B: Batch-Wise Homework Upload (Text + Image / PDF) -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="font-extrabold text-slate-900 text-base">2. Upload Today's Homework</h2>
-              <p class="text-[11px] text-slate-500">Batch chunein aur Image ya PDF upload karein</p>
-            </div>
-            <span class="text-2xl">📚</span>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Select Batch / Class Section</label>
-            <select id="hw-batch" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800">
-              <option value="All Batches">All Batches (Sabhi Students ke liye)</option>
-              <option value="Morning Batch (6:00 - 9:00 AM)">Morning Batch (6:00 - 9:00 AM)</option>
-              <option value="Evening Batch (3:20 - 6:00 PM)">Evening Batch (3:20 - 6:00 PM)</option>
-              <option value="Class 1">Class 1</option>
-              <option value="Class 2">Class 2</option>
-              <option value="Class 3">Class 3</option>
-              <option value="Class 4">Class 4</option>
-              <option value="Class 5">Class 5</option>
-              <option value="Class 6">Class 6</option>
-              <option value="Class 7">Class 7</option>
-              <option value="Class 8">Class 8</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Homework Details / Topic</label>
-            <textarea id="hw-title" rows="2" placeholder="Jaise: Ganit Exercise 4.2 Q1 se Q5 tak copy mein karein..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"></textarea>
-          </div>
-
-          <div class="p-3 bg-indigo-50/70 border border-dashed border-indigo-300 rounded-xl">
-            <label class="block text-xs font-bold text-indigo-900 mb-1">📎 Attach Homework Photo or PDF (Optional)</label>
-            <input id="hw-file-input" type="file" accept="image/*,application/pdf" onchange="handleHomeworkFile(event)" class="text-[11px] text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-900 file:text-white" />
-            <p id="hw-file-status" class="text-[11px] font-semibold text-emerald-700 mt-1 hidden"></p>
-          </div>
-
-          <button onclick="saveHomework()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl shadow">
-            📤 Publish Homework to Batch Section
-          </button>
+        <hr />
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+          <h2 class="font-extrabold text-sm">2. Upload Today's Homework (Image / PDF)</h2>
+          <select id="hw-batch" class="w-full px-3 py-2.5 bg-slate-50 border rounded-xl text-xs font-bold">
+            <option value="All Batches">All Batches</option>
+            <option value="Morning Batch (6:00 - 9:00 AM)">Morning Batch (6:00 - 9:00 AM)</option>
+            <option value="Evening Batch (3:20 - 6:00 PM)">Evening Batch (3:20 - 6:00 PM)</option>
+            <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option>
+            <option value="Class 3">Class 3</option><option value="Class 4">Class 4</option>
+            <option value="Class 5">Class 5</option><option value="Class 6">Class 6</option>
+            <option value="Class 7">Class 7</option><option value="Class 8">Class 8</option>
+          </select>
+          <textarea id="hw-title" rows="2" placeholder="Homework topic likhein..." class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs"></textarea>
+          <input id="hw-file-input" type="file" accept="image/*,application/pdf" onchange="handleHomeworkFile(event)" class="text-xs" />
+          <p id="hw-file-status" class="text-xs font-bold text-emerald-700 hidden"></p>
+          <button type="button" onclick="saveHomework()" class="w-full py-3 bg-emerald-600 text-white text-xs font-extrabold rounded-xl">📤 Publish Homework</button>
         </div>
+        <div id="owner-homework-list" class="space-y-2"></div>
+      </section>
 
-        <div class="space-y-2">
-          <h3 class="font-bold text-slate-700 text-xs uppercase tracking-wider">Published Homework History</h3>
-          <div id="owner-homework-list" class="space-y-2"></div>
+      <!-- TAB 4: EVENTS & FESTIVALS -->
+      <section id="owner-tab-events" class="p-4 space-y-4 hidden">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
+          <h2 class="font-extrabold text-sm">🎉 Festival & Holiday Popup (Template Chunein)</h2>
+          <div id="event-templates-grid" class="grid grid-cols-2 gap-2"></div>
+          <input id="ev-title" type="text" placeholder="Event / Festival Title" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs font-bold" />
+          <textarea id="ev-message" rows="2" placeholder="Shubhkamna / Chhutti ka sandesh..." class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs"></textarea>
+          <div class="grid grid-cols-2 gap-2">
+            <div><label class="text-[10px] font-bold text-rose-700">Kab Se Band</label><input id="ev-start-date" type="date" class="w-full px-2.5 py-2 bg-slate-50 border rounded-xl text-xs" /></div>
+            <div><label class="text-[10px] font-bold text-rose-700">Kab Tak Band</label><input id="ev-end-date" type="date" class="w-full px-2.5 py-2 bg-slate-50 border rounded-xl text-xs" /></div>
+          </div>
+          <div><label class="text-[10px] font-bold text-emerald-700">🏫 Reopen Date (Kab Khulegi)</label><input id="ev-reopen-date" type="date" class="w-full px-2.5 py-2 bg-slate-50 border rounded-xl text-xs" /></div>
+          <button type="button" onclick="saveCoachingEvent()" class="w-full py-3 bg-blue-900 text-white font-extrabold text-xs rounded-xl">🚀 Publish Popup & WhatsApp Msg</button>
+        </div>
+        <div id="event-whatsapp-broadcast" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-3 space-y-2">
+          <div class="flex justify-between items-center"><span class="text-xs font-bold text-emerald-900">📲 Send to Parents:</span><button type="button" onclick="copyEventMessage()" class="px-2.5 py-1 bg-slate-900 text-white text-[10px] rounded-lg">Copy Msg</button></div>
+          <div id="event-parents-wa-list" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+        </div>
+        <div id="owner-events-list" class="space-y-2"></div>
+      </section>
+
+      <!-- TAB 5: TESTS & SETTINGS -->
+      <section id="owner-tab-tests" class="p-4 space-y-4 hidden">
+        <div class="bg-white p-4 rounded-2xl border space-y-2.5">
+          <h2 class="font-bold text-sm">📊 Add Weekly Test Marks</h2>
+          <select id="test-student-select" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs"></select>
+          <input id="test-title-input" type="text" placeholder="Test Name" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="test-marks-input" type="number" placeholder="Marks" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+            <input id="test-max-input" type="number" value="100" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          </div>
+          <button type="button" onclick="saveTestScore()" class="w-full py-2.5 bg-blue-900 text-white text-xs font-bold rounded-xl">Save Test Score</button>
+        </div>
+        <div id="owner-tests-list" class="space-y-2"></div>
+
+        <div class="bg-white p-4 rounded-2xl border space-y-3">
+          <h2 class="font-bold text-sm">🛡️ Owner Settings (Gmail, Mobile, UPI & PIN)</h2>
+          <input id="set-coaching-name" type="text" placeholder="Coaching Name" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          <input id="set-teacher-name" type="text" placeholder="Director Name" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          <input id="set-owner-email" type="email" placeholder="Owner Gmail ID" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          <input id="set-owner-phone" type="tel" maxlength="10" placeholder="Owner Mobile (9569978125)" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          <input id="set-upi-id" type="text" placeholder="UPI ID" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs" />
+          <input id="set-owner-pin" type="text" maxlength="6" placeholder="Owner PIN" class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs font-bold" />
+          <button type="button" onclick="saveOwnerSettings()" class="w-full py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl">Save All Settings</button>
         </div>
       </section>
 
-      <!-- TAB 4: EVENTS & FESTIVAL HOLIDAYS (READY-MADE TEMPLATES + AUTO-EXPIRE POPUP) -->
-      <section id="owner-tab-events" class="p-4 space-y-4 hidden">
-        <div class="bg-gradient-to-r from-amber-500 to-rose-600 text-white p-4 rounded-2xl shadow-md">
-          <h2 class="font-extrabold text-base">🎉 Festival, Holiday & Event Popup</h2>
-          <p class="text-xs text-amber-100 mt-0.5">Template chunein, date set karein—app kholte hi sabhi parents ko popup dikhega aur date khatam hote hi agle din hat jayega!</p>
+      <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t px-2 py-2 flex justify-around z-30">
+        <button type="button" onclick="switchOwnerTab('home')" id="nav-home" class="owner-nav flex flex-col items-center text-blue-900 font-bold text-[11px]"><span class="text-lg">🏠</span>Students</button>
+        <button type="button" onclick="switchOwnerTab('fees')" id="nav-fees" class="owner-nav flex flex-col items-center text-slate-400 text-[11px]"><span class="text-lg">💰</span>Fees</button>
+        <button type="button" onclick="switchOwnerTab('attendance')" id="nav-attendance" class="owner-nav flex flex-col items-center text-slate-400 text-[11px]"><span class="text-lg">📋</span>Attend/HW</button>
+        <button type="button" onclick="switchOwnerTab('events')" id="nav-events" class="owner-nav flex flex-col items-center text-slate-400 text-[11px]"><span class="text-lg">🎉</span>Events</button>
+        <button type="button" onclick="switchOwnerTab('tests')" id="nav-tests" class="owner-nav flex flex-col items-center text-slate-400 text-[11px]"><span class="text-lg">⚙️</span>Tests/Set</button>
+      </nav>
+    </div>
+
+    <!-- PARENT SCREEN -->
+    <div id="screen-parent" class="hidden pb-10">
+      <header class="bg-blue-950 text-white px-4 pt-4 pb-16 rounded-b-3xl flex justify-between items-center">
+        <div><p class="text-xs font-extrabold text-yellow-300">संकल्प कोचिंग क्लासेस</p><p class="text-[10px] text-blue-200">हरीपुर बाजार, बदलापुर रोड, जौनपुर</p></div>
+        <button type="button" onclick="logout()" class="px-3 py-1.5 bg-white/15 rounded-lg text-xs">Exit</button>
+      </header>
+      <div class="px-4 -mt-12 space-y-4">
+        <div id="p-active-event-card" class="hidden bg-gradient-to-r from-amber-500 to-rose-600 text-white p-3.5 rounded-2xl shadow-lg">
+          <div class="flex justify-between"><span class="text-[10px] font-extrabold uppercase">📢 Holiday / Event Notice</span><button type="button" onclick="showActiveEventPopup()" class="text-[11px] underline font-bold">Open</button></div>
+          <h3 id="p-ev-banner-title" class="font-black text-sm mt-0.5"></h3>
+          <p id="p-ev-banner-dates" class="text-xs text-amber-100"></p>
         </div>
 
-        <!-- Ready-Made Festival & Holiday Templates -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y
+        <div id="p-today-absent-alert" class="hidden bg-rose-600 text-white p-4 rounded-2xl shadow-xl flex gap-3">
+          <span class="text-2xl">🚨</span>
+          <div><h3 class="font-extrabold text-sm">Aaj Aapka Bachcha ABSENT Hai!</h3><p id="p-absent-date-text" class="text-xs text-rose-100 mt-0.5"></p></div>
+        </div>
+
+        <!-- DIGITAL ID CARD -->
+        <div class="bg-white rounded-3xl shadow-xl border border-indigo-100 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-900 to-blue-800 px-4 py-3 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 bg-yellow-400 text-blue-950 rounded-xl flex items-center justify-center font-black text-sm">SC</div>
+              <div><h1 id="id-coaching-name" class="font-extrabold text-sm text-yellow-300">संकल्प कोचिंग क्लासेस</h1><p class="text-[10px] text-blue-100">हरीपुर बाजार, जौनपुर</p></div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-400/20 text-emerald-200 text-[9px] font-bold rounded-full">ACTIVE</span>
+          </div>
+          <div class="p-4 flex gap-3.5 items-center">
+            <div class="w-20 h-24 rounded-2xl bg-indigo-50 border-2 border-blue-900 overflow-hidden shrink-0 flex items-center justify-center">
+              <img id="id-student-photo" src="" class="w-full h-full object-cover hidden" />
+              <span id="id-student-initials" class="text-2xl font-black text-blue-900">ST</span>
+            </div>
+          <script>
+    const SUPABASE_URL = 'https://dwpmeaxovlfkamcgdrxs.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_lU5D0hXiVIvdc-SxF3z2xg_EiEblrN7';
+    let db = null;
+    try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) {}
+
+    let appSettings = { coaching_name: 'संकल्प कोचिंग क्लासेस', teacher_name: 'Ashish Prajapati', upi_id: '9569978125@upi', owner_pin: '1234', owner_email: '', owner_phone: '9569978125' };
+    let students = [], attendanceMap = {}, selectedAttClass = 'Class 1', allHomeworks = [], selectedParentBatchTab = 'My Batch';
+    let currentParentStudent = null, pendingParentStudent = null, parentGeneratedOTP = null, ownerGeneratedOTP = null;
+    let activeEventCache = null, latestBroadcastText = '', selectedEventIcon = '🎉', hwAttachment = { data: '', name: '', type: '' };
+
+    const EVENT_TEMPLATES = [
+      { icon: '🎆', label: 'Happy New Year', title: 'Happy New Year! (Holiday Notice)', msg: 'Sankalp Coaching Classes ki ore se Nav Varsh ki hardik shubhkamnayein! Coaching band rahegi.' },
+      { icon: '🪔', label: 'Happy Diwali', title: 'Shubh Deepawali! (Holiday Notice)', msg: 'Deepawali ke pavan parv ki hardik shubhkamnayein! Tyohar ke avsar par coaching band rahegi.' },
+      { icon: '🏹', label: 'Dussehra', title: 'Shubh Vijayadashami / Dussehra!', msg: 'Dussehra ke pavan parv ki shubhkamnayein! Vijayadashami ke uplakshya mein coaching band rahegi.' },
+      { icon: '🌺', label: 'Durga Puja', title: 'Shubh Durga Puja Avkash!', msg: 'Durga Puja ke pavan avsar par coaching classes band rahengi.' },
+      { icon: '☀️', label: 'Chhath Puja', title: 'Chhath Mahaparv ki Shubhkamnayein!', msg: 'Chhath Puja ke avkash ke karan coaching classes band rahengi.' },
+      { icon: '🎨', label: 'Happy Holi', title: 'Shubh Holi Avkash!', msg: 'Holi ke pavan parv ki shubhkamnayein! Holi avkash ke karan coaching band rahegi.' },
+      { icon: '🇮🇳', label: '26 Jan / 15 Aug', title: 'Rashtriya Parv Karyakram', msg: 'Rashtriya parv ki hardik shubhkamnayein! Karyakram ke baad niyamit kakshayein band rahengi.' },
+      { icon: '📅', label: 'Aaj Band Hai', title: 'Coaching Avkash (Holiday Notice)', msg: 'Sabhi vidyarthiyon ko suchit kiya jata hai ki vishesh avkash ke chalte coaching band rahegi.' }
+    ];
+
+    function showLoader(s) { document.getElementById('loader').classList.toggle('hidden', !s); }
+    function toast(m) {
+      const el = document.getElementById('toast');
+      el.textContent = m;
+      el.classList.remove('opacity-0');
+      setTimeout(() => el.classList.add('opacity-0'), 3200);
+    }
+
+    async function initApp() {
+      if (!db) return;
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const { data: settings } = await db.from('app_settings').select('*').eq('id', 1).single();
+        if (settings) {
+          if (settings.coaching_name === 'Sankalp Coaching Center') settings.coaching_name = 'संकल्प कोचिंग क्लासेस';
+          if (settings.teacher_name === 'Ashish Sir') settings.teacher_name = 'Ashish Prajapati';
+          if (!settings.owner_phone) settings.owner_phone = '9569978125';
+          appSettings = { ...appSettings, ...settings };
+          document.getElementById('welcome-coaching-name').textContent = appSettings.coaching_name;
+        }
+        const { data: events } = await db.from('coaching_events').select('*').gte('end_date', today).order('created_at', { ascending: false }).limit(1);
+        if (events && events.length > 0) { activeEventCache = events[0]; showActiveEventPopup(); }
+      } catch (e) {}
+    }
+    initApp();
+
+    function showActiveEventPopup() {
+      if (!activeEventCache) return;
+      const ev = activeEventCache;
+      document.getElementById('popup-event-icon').textContent = ev.event_type || '🎉';
+      document.getElementById('popup-event-title').textContent = ev.title;
+      document.getElementById('popup-event-message').textContent = ev.message;
+      document.getElementById('popup-event-dates').textContent = ev.start_date === ev.end_date ? ev.start_date : (ev.start_date + ' se ' + ev.end_date);
+      document.getElementById('popup-event-reopen').textContent = ev.reopen_date;
+      document.getElementById('modal-event-popup').classList.remove('hidden');
+    }
+    function closeEventPopup() { document.getElementById('modal-event-popup').classList.add('hidden'); }
+
+    async function loginOwner() {
+      const entered = document.getElementById('owner-pin-input').value.trim();
+      if (!entered) return toast('⚠️ Pehle Owner PIN dalein (1234)');
+      if (entered === String(appSettings.owner_pin)) {
+        document.getElementById('screen-role').classList.add('hidden');
+        document.getElementById('screen-owner').classList.remove('hidden');
+        await loadOwnerData();
+      } else {
+        toast('❌ Galat Owner PIN! Sahi PIN dalein ya Forgot PIN par tap karein.');
+      }
+    }
+    function logout() { location.reload(); }
+
+    async function sendParentOTP() {
+      const phone = document.getElementById('parent-phone-input').value.trim().replace(/\D/g, '').slice(-10);
+      if (phone.length < 10) return toast('⚠️ Valid 10-digit mobile number dalein');
+      showLoader(true);
+      const { data, error } = await db.from('students').select('*').ilike('parent_phone', '%' + phone + '%').limit(1);
+      showLoader(false);
+      if (error) return toast('❌ Error: ' + error.message);
+      if (!data || data.length === 0) return toast('❌ Yeh number Owner ke database mein registered nahi hai!');
+      pendingParentStudent = data[0];
+      parentGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      const msg = 'Sankalp Coaching Classes OTP: ' + parentGeneratedOTP + ' (' + pendingParentStudent.name + ')';
+      document.getElementById('p-btn-wa-otp').href = 'https://wa.me/91' + phone + '?text=' + encodeURIComponent(msg);
+      document.getElementById('p-btn-sms-otp').href = 'sms:+91' + phone + '?body=' + encodeURIComponent(msg);
+      document.getElementById('parent-login-step1').classList.add('hidden');
+      document.getElementById('parent-login-step2').classList.remove('hidden');
+      toast('✅ Number Verified! WhatsApp ya SMS se OTP dekhein.');
+    }
+
+    async function verifyParentOTP() {
+      const entered = document.getElementById('parent-otp-input').value.trim();
+      if (!parentGeneratedOTP || entered !== parentGeneratedOTP) return toast('❌ Galat OTP!');
+      currentParentStudent = pendingParentStudent;
+      document.getElementById('screen-role').classList.add('hidden');
+      document.getElementById('screen-parent').classList.remove('hidden');
+      await loadParentPortal();
+    }
+    function resetParentLoginStep() {
+      document.getElementById('parent-login-step2').classList.add('hidden');
+      document.getElementById('parent-login-step1').classList.remove('hidden');
+    }
+
+    function openForgotPinModal() {
+      document.getElementById('fp-step-1').classList.remove('hidden');
+      document.getElementById('fp-step-2').classList.add('hidden');
+      document.getElementById('modal-forgot-pin').classList.remove('hidden');
+    }
+    function closeForgotPinModal() { document.getElementById('modal-forgot-pin').classList.add('hidden'); }
+    function generateAndSendOTP() {
+      const input = document.getElementById('fp-identifier').value.trim().toLowerCase();
+      const savedEmail = (appSettings.owner_email || '').trim().toLowerCase();
+      const savedPhone = (appSettings.owner_phone || '9569978125').replace(/\D/g, '').slice(-10);
+      const cleanPhone = input.replace(/\D/g, '').slice(-10);
+      if ((!savedEmail || input !== savedEmail) && (!savedPhone || cleanPhone !== savedPhone)) return toast('❌ Gmail ya Mobile registered nahi hai!');
+      ownerGeneratedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      const msg = 'Sankalp Coaching PIN Reset OTP: ' + ownerGeneratedOTP;
+      if (savedEmail) document.getElementById('btn-send-gmail-otp').href = 'mailto:' + savedEmail + '?subject=PIN%20OTP&body=' + encodeURIComponent(msg);
+      if (savedPhone) document.getElementById('btn-send-wa-otp').href = 'https://wa.me/91' + savedPhone + '?text=' + encodeURIComponent(msg);
+      document.getElementById('fp-step-1').classList.add('hidden');
+      document.getElementById('fp-step-2').classList.remove('hidden');
+    }
+    async function verifyOTPAndResetPIN() {
+      if (document.getElementById('fp-otp-input').value.trim() !== ownerGeneratedOTP) return toast('❌ Galat OTP!');
+      const newPin = document.getElementById('fp-new-pin').value.trim();
+      if (newPin.length < 4) return toast('PIN 4-6 digits ka rakhein');
+      showLoader(true);
+      await db.from('app_settings').update({ owner_pin: newPin }).eq('id', 1);
+      appSettings.owner_pin = newPin;
+      showLoader(false);
+      closeForgotPinModal();
+      toast('🎉 Naya PIN Set Ho Gaya!');
+    }
+
+    async function loadOwnerData() {
+      showLoader(true);
+      document.getElementById('header-coaching').textContent = appSettings.coaching_name;
+      document.getElementById('header-teacher').textContent = 'संचालक: ' + appSettings.teacher_name;
+      document.getElementById('set-coaching-name').value = appSettings.coaching_name || '';
+      document.getElementById('set-teacher-name').value = appSettings.teacher_name || '';
+      document.getElementById('set-owner-email').value = appSettings.owner_email || '';
+      document.getElementById('set-owner-phone').value = appSettings.owner_phone || '9569978125';
+      document.getElementById('set-upi-id').value = appSettings.upi_id || '';
+      document.getElementById('set-owner-pin').value = appSettings.owner_pin || '1234';
+
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+      document.getElementById('today-date-label').textContent = today;
+      document.getElementById('ev-start-date').value = today;
+      document.getElementById('ev-end-date').value = today;
+      document.getElementById('ev-reopen-date').value = tomorrow;
+
+      const [stuRes, attRes, testRes, enqRes, hwRes, evRes] = await Promise.all([
+        db.from('students').select('*').order('created_at', { ascending: false }),
+        db.from('attendance').select('*').eq('att_date', today),
+        db.from('weekly_tests').select('*, students(name, parent_phone)').order('test_date', { ascending: false }).limit(20),
+        db.from('enquiries').select('*').order('created_at', { ascending: false }),
+        db.from('homework').select('*').order('created_at', { ascending: false }).limit(15),
+        db.from('coaching_events').select('*').order('created_at', { ascending: false }).limit(10)
+      ]);
+
+      students = stuRes.data || [];
+      attendanceMap = {};
+      (attRes.data || []).forEach(a => { attendanceMap[a.student_id] = a.status; });
+
+      let col = 0, pen = 0;
+      students.forEach(s => { if (s.fee_status === 'Paid') col += Number(s.monthly_fee); else pen += Number(s.monthly_fee); });
+      document.getElementById('stat-collected').textContent = '₹' + col;
+      document.getElementById('stat-pending').textContent = '₹' + pen;
+      document.getElementById('stat-students').textContent = students.length;
+      document.getElementById('stat-enquiries').textContent = (enqRes.data || []).length;
+
+      document.getElementById('owner-student-list').innerHTML = students.length === 0
+        ? '<div class="bg-white p-5 rounded-2xl text-center text-xs text-slate-400">Abhi koi student nahi hai. "+ Add Student" par tap karein.</div>'
+        : students.map((s, i) => '<div class="bg-white p-3 rounded-2xl shadow-sm border flex justify-between items-center"><div class="flex items-center gap-2.5">' +
+          (s.photo_url ? '<img src="' + s.photo_url + '" class="w-11 h-12 rounded-xl object-cover" />' : '<div class="w-11 h-12 rounded-xl bg-blue-100 text-blue-900 font-bold flex items-center justify-center">' + s.name.slice(0,2).toUpperCase() + '</div>') +
+          '<div><h3 class="font-bold text-sm">' + s.name + ' (' + s.student_class + ')</h3><p class="text-[11px] text-slate-500">Reg: ' + (s.reg_no || 'SC-'+(101+i)) + ' • Roll: ' + (s.roll_no || (i+1)) + '</p><p class="text-[11px] font-bold ' + (s.fee_status==='Paid'?'text-emerald-600':'text-rose-600') + '">₹' + s.monthly_fee + ' • ' + s.fee_status + '</p></div></div>' +
+          '<div class="flex flex-col gap-1"><button type="button" onclick="openEditStudentById(\'' + s.id + '\')" class="px-2.5 py-1 bg-slate-100 rounded-lg text-[11px] font-bold">Edit</button><button type="button" onclick="deleteStudent(\'' + s.id + '\')" class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg text-[11px] font-bold">Del</button></div></div>').join('');
+
+      document.getElementById('owner-enquiries-list').innerHTML = (enqRes.data || []).map(e => '<div class="bg-white p-3 rounded-xl border flex justify-between items-center"><div><p class="font-bold text-xs">' + e.friend_name + ' (' + (e.student_class||'') + ')</p><p class="text-[11px] text-slate-500">By: ' + (e.referred_by_name||'Parent') + '</p></div><a href="https://wa.me/91' + e.friend_phone + '" target="_blank" class="px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded-lg">WhatsApp</a></div>').join('');
+
+      document.getElementById('owner-fees-list').innerHTML = students.map(s => {
+        const isPaid = s.fee_status === 'Paid';
+        const msg = encodeURIComponent('Namaste, ' + appSettings.coaching_name + ' se reminder: ' + s.name + ' ki ₹' + s.monthly_fee + ' fee pending hai. UPI: ' + appSettings.upi_id);
+        return '<div class="bg-white p-3.5 rounded-2xl border flex justify-between items-center"><div><h3 class="font-bold text-sm">' + s.name + '</h3><p class="text-xs text-slate-500">Due: ' + s.next_due_date + '</p><p class="text-sm font-extrabold ' + (isPaid?'text-emerald-600':'text-rose-600') + '">₹' + s.monthly_fee + ' • ' + s.fee_status + '</p></div><div class="flex flex-col gap-1.5">' + (!isPaid ? '<a href="https://wa.me/91' + s.parent_phone + '?text=' + msg + '" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-xl">Alert</a>' : '') + '<button type="button" onclick="toggleFeeStatus(\'' + s.id + '\', \'' + (isPaid?'Pending':'Paid') + '\')" class="px-3 py-1.5 bg-slate-100 text-xs font-bold rounded-xl">Mark ' + (isPaid?'Pending':'Paid') + '</button></div></div>';
+      }).join('');
+
+      renderClassAttendanceTabs();
+      renderAttendance();
+      renderOwnerHomeworks(hwRes.data || []);
+      renderEventTemplates();
+      renderOwnerEvents(evRes.data || []);
+      renderTests(testRes.data || []);
+      showLoader(false);
+    }
+
+    function renderClassAttendanceTabs() {
+      const classes = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'All'];
+      document.getElementById('att-class-tabs').innerHTML = classes.map(c => {
+        const cnt = c === 'All' ? students.length : students.filter(s => s.student_class === c).length;
+        return '<button type="button" onclick="selectAttClass(\'' + c + '\')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 ' + (selectedAttClass===c ? 'bg-blue-900 text-white' : 'bg-white border text-slate-600') + '">' + c + ' (' + cnt + ')</button>';
+      }).join('');
+    }
+    function selectAttClass(c) { selectedAttClass = c; document.getElementById('absent-summary-box').classList.add('hidden'); renderClassAttendanceTabs(); renderAttendance(); }
+    function renderAttendance() {
+      const list = selectedAttClass === 'All' ? students : students.filter(s => s.student_class === selectedAttClass);
+      document.getElementById('owner-attendance-list').innerHTML = list.length === 0
+        ? '<div class="bg-white p-4 rounded-2xl text-center text-xs text-slate-400">' + selectedAttClass + ' mein koi student nahi hai.</div>'
+        : list.map((s, i) => {
+          const st = attendanceMap[s.id] || 'P';
+          return '<div class="bg-white p-3 rounded-2xl border flex justify-between items-center"><div class="flex items-center gap-2.5">' +
+            (s.photo_url ? '<img src="' + s.photo_url + '" class="w-11 h-11 rounded-xl object-cover" />' : '<div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-900 font-bold flex items-center justify-center">' + s.name.slice(0,2).toUpperCase() + '</div>') +
+            '<div><h3 class="font-extrabold text-sm">' + s.name + '</h3><p class="text-[11px] font-bold text-blue-800">Reg: ' + (s.reg_no || 'SC-'+(101+i)) + '</p><p class="text-[10px] text-slate-500">' + s.student_class + ' • ' + s.subject_batch + '</p></div></div>' +
+            '<div class="flex gap-2"><button type="button" onclick="setAtt(\'' + s.id + '\', \'P\')" class="w-11 h-11 rounded-xl font-black text-sm ' + (st==='P'?'bg-emerald-600 text-white':'bg-slate-100 text-slate-400') + '">P</button><button type="button" onclick="setAtt(\'' + s.id + '\', \'A\')" class="w-11 h-11 rounded-xl font-black text-sm ' + (st==='A'?'bg-rose-600 text-white':'bg-slate-100 text-slate-400') + '">A</button></div></div>';
+        }).join('');
+    }
+    function setAtt(id, st) { attendanceMap[id] = st; renderAttendance(); }
+    async function saveAllAttendance() {
+      const target = selectedAttClass === 'All' ? students : students.filter(s => s.student_class === selectedAttClass);
+      if (target.length === 0) return toast('Is class mein koi student nahi hai');
+      showLoader(true);
+      const today = new Date().toISOString().split('T')[0];
+      await db.from('attendance').upsert(target.map(s => ({ student_id: s.id, att_date: today, status: attendanceMap[s.id] || 'P' })), { onConflict: 'student_id,att_date' });
+      showLoader(false);
+      toast('✅ ' + selectedAttClass + ' Attendance Saved!');
+      const abs = target.filter(s => (attendanceMap[s.id] || 'P') === 'A');
+      if (abs.length > 0) {
+        document.getElementById('absent-summary-box').classList.remove('hidden');
+        document.getElementById('absent-whatsapp-list').innerHTML = abs.map(s => '<div class="flex justify-between items-center bg-white px-3 py-2 rounded-xl"><span class="text-xs font-bold">' + s.name + '</span><a href="https://wa.me/91' + s.parent_phone + '?text=' + encodeURIComponent('Alert: ' + s.name + ' aaj coaching mein ABSENT hai. - ' + appSettings.coaching_name) + '" target="_blank" class="px-2.5 py-1 bg-rose-600 text-white text-[11px] font-bold rounded-lg">WhatsApp</a></div>').join('');
+      }
+    }
+
+    function renderEventTemplates() {
+      document.getElementById('event-templates-grid').innerHTML = EVENT_TEMPLATES.map((t, i) => '<button type="button" onclick="applyEventTemplate(' + i + ')" class="p-2 bg-slate-50 border rounded-xl text-left flex items-center gap-1.5"><span class="text-base">' + t.icon + '</span><span class="text-[11px] font-bold">' + t.label + '</span></button>').join('');
+    }
+    function applyEventTemplate(i) {
+      const t = EVENT_TEMPLATES[i];
+      selectedEventIcon = t.icon;
+      document.getElementById('ev-title').value = t.title;
+      document.getElementById('ev-message').value = t.msg;
+      toast(t.icon + ' Template selected!');
+    }
+    async function saveCoachingEvent() {
+      const title = document.getElementById('ev-title').value.trim();
+      const message = document.getElementById('ev-message').value.trim();
+      const start_date = document.getElementById('ev-start-date').value;
+      const end_date = document.getElementById('ev-end-date').value;
+      const reopen_date = document.getElementById('ev-reopen-date').value;
+      if (!title || !message) return toast('Title aur Message bharein');
+      showLoader(true);
+      const { error } = await db.from('coaching_events').insert([{ title, event_type: selectedEventIcon, message, start_date, end_date, reopen_date }]);
+      if (error) { showLoader(false); return toast('❌ Error: ' + error.message); }
+      latestBroadcastText = '*' + title + '*\n' + message + '\n📅 Band: ' + start_date + ' to ' + end_date  + '\n🏫 Reopen: ' + reopen_date + '\n- ' + appSettings.coaching_name;
+      document.getElementById('event-whatsapp-broadcast').classList.remove('hidden');
+      document.getElementById('event-parents-wa-list').innerHTML = students.map(s => '<div class="flex justify-between items-center bg-white px-3 py-1.5 rounded-xl"><span class="text-xs font-bold">' + s.name + '</span><a href="https://wa.me/91' + s.parent_phone + '?text=' + encodeURIComponent(latestBroadcastText) + '" target="_blank" class="px-2.5 py-1 bg-emerald-600 text-white text-[11px] font-bold rounded-lg">WhatsApp</a></div>').join('');
+      await loadOwnerData();
+      toast('🎉 Event Popup Live!');
+    }
+    function copyEventMessage() { navigator.clipboard.writeText(latestBroadcastText); toast('📋 Message Copied!'); }
+    function renderOwnerEvents(evs) {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('owner-events-list').innerHTML = evs.map(ev => '<div class="bg-white p-3 rounded-xl border flex justify-between items-center"><div><p class="font-bold text-xs">' + (ev.event_type||'🎉') + ' ' + ev.title + ' (' + (ev.end_date>=today?'Active':'Expired') + ')</p><p class="text-[11px] text-rose-700">Band: ' + ev.start_date + ' - ' + ev.end_date + ' | Open: ' + ev.reopen_date + '</p></div><button type="button" onclick="deleteCoachingEvent(\'' + ev.id + '\')" class="px-2 py-1 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg">Del</button></div>').join('');
+    }
+    async function deleteCoachingEvent(id) { showLoader(true); await db.from('coaching_events').delete().eq('id', id); await loadOwnerData(); }
+
+    function handleHomeworkFile(e) {
+      const f = e.target.files[0]; if (!f) return;
+      const st = document.getElementById('hw-file-status');
+      const r = new FileReader();
+      r.onload = (ev) => {
+        hwAttachment = { data: ev.target.result, name: f.name, type: f.type === 'application/pdf' ? 'pdf' : 'image' };
+        st.textContent = '✅ File Ready: ' + f.name; st.classList.remove('hidden');
+      };
+      r.readAsDataURL(f);
+    }
+    async function saveHomework() {
+      const subject_batch = document.getElementById('hw-batch').value;
+      const title = document.getElementById('hw-title').value.trim();
+      if (!title && !hwAttachment.data) return toast('Homework likhein ya file chunein');
+      showLoader(true);
+      await db.from('homework').insert([{ subject_batch, title: title || hwAttachment.name, file_data: hwAttachment.data, file_name: hwAttachment.name, file_type: hwAttachment.type }]);
+      document.getElementById('hw-title').value = ''; hwAttachment = { data: '', name: '', type: '' };
+      await loadOwnerData();
+      toast('✅ Homework Published!');
+    }
+    function renderOwnerHomeworks(hws) {
+      document.getElementById('owner-homework-list').innerHTML = hws.map(h => '<div class="bg-white p-3 rounded-xl border flex justify-between items-center"><div><span class="text-[10px] font-bold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">' + h.subject_batch + '</span><p class="text-xs font-semibold mt-1">' + h.title + '</p></div><button type="button" onclick="deleteHomework(\'' + h.id + '\')" class="px-2 py-1 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg">Del</button></div>').join('');
+    }
+    async function deleteHomework(id) { showLoader(true); await db.from('homework').delete().eq('id', id); await loadOwnerData(); }
+
+    function renderTests(tests) {
+      document.getElementById('test-student-select').innerHTML = students.map(s => '<option value="' + s.id + '">' + s.name + ' (' + s.student_class + ')</option>').join('');
+      document.getElementById('owner-tests-list').innerHTML = tests.map(t => '<div class="bg-white p-3 rounded-xl border flex justify-between items-center"><div><p class="font-bold text-xs">' + (t.students?t.students.name:'Student') + '</p><p class="text-[11px] text-slate-500">' + t.test_title + ': <b>' + t.marks + '/' + t.max_marks + '</b></p></div></div>').join('');
+    }
+
+    function handlePhotoUpload(e) {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas'); const sc = 220 / img.width;
+          c.width = 220; c.height = img.height * sc;
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const b64 = c.toDataURL('image/jpeg', 0.75);
+          document.getElementById('stu-photo-data').value = b64;
+          document.getElementById('stu-photo-preview').src = b64;
+          document.getElementById('stu-photo-preview').classList.remove('hidden');
+          document.getElementById('stu-photo-placeholder').classList.add('hidden');
+        };
+        img.src = ev.target.result;
+      };
+      r.readAsDataURL(f);
+    }
+    function openAddStudentModal() {
+      document.getElementById('edit-student-id').value = '';
+      document.getElementById('stu-name').value = '';
+      document.getElementById('stu-reg-no').value = 'SC-2026-' + (101 + students.length);
+      document.getElementById('stu-roll-no').value = String(students.length + 1);
+      document.getElementById('stu-phone').value = '';
+      document.getElementById('stu-due-date').value = new Date(Date.now() + 5*86400000).toISOString().split('T')[0];
+      document.getElementById('modal-student').classList.remove('hidden');
+    }
+    function openEditStudentById(id) {
+      const s = students.find(x => String(x.id) === String(id)); if (!s) return;
+      document.getElementById('edit-student-id').value = s.id;
+      document.getElementById('stu-photo-data').value = s.photo_url || '';
+      document.getElementById('stu-name').value = s.name;
+      document.getElementById('stu-reg-no').value = s.reg_no || '';
+      document.getElementById('stu-roll-no').value = s.roll_no || '';
+      document.getElementById('stu-class').value = s.student_class || 'Class 8';
+      document.getElementById('stu-subject').value = s.subject_batch || 'Morning Batch (6:00 - 9:00 AM)';
+      document.getElementById('stu-phone').value = s.parent_phone;
+      document.getElementById('stu-fee').value = s.monthly_fee;
+      document.getElementById('stu-due-date').value = s.next_due_date;
+      document.getElementById('stu-fee-status').value = s.fee_status;
+      document.getElementById('modal-student').classList.remove('hidden');
+    }
+    function closeStudentModal() { document.getElementById('modal-student').classList.add('hidden'); }
+    async function saveStudent() {
+      const id = document.getElementById('edit-student-id').value;
+      const payload = {
+        name: document.getElementById('stu-name').value.trim(),
+        reg_no: document.getElementById('stu-reg-no').value.trim(),
+        roll_no: document.getElementById('stu-roll-no').value.trim(),
+        photo_url: document.getElementById('stu-photo-data').value || '',
+        student_class: document.getElementById('stu-class').value,
+        subject_batch: document.getElementById('stu-subject').value,
+        parent_phone: document.getElementById('stu-phone').value.trim().replace(/\D/g, '').slice(-10),
+        monthly_fee: Number(document.getElementById('stu-fee').value) || 500,
+        next_due_date: document.getElementById('stu-due-date').value,
+        fee_status: document.getElementById('stu-fee-status').value
+      };
+      if (!payload.name || payload.parent_phone.length < 10) return toast('Name aur 10-digit mobile dalein');
+      showLoader(true);
+      if (id) await db.from('students').update(payload).eq('id', id); else await db.from('students').insert([payload]);
+      closeStudentModal(); await loadOwnerData(); toast('✅ Student Saved!');
+    }
+    async function deleteStudent(id) { if (!confirm('Delete?')) return; showLoader(true); await db.from('students').delete().eq('id', id); await loadOwnerData(); }
+    async function toggleFeeStatus(id, st) { showLoader(true); await db.from('students').update({ fee_status: st }).eq('id', id); await loadOwnerData(); }
+    async function saveTestScore() {
+      const student_id = document.getElementById('test-student-select').value;
+      const test_title = document.getElementById('test-title-input').value.trim() || 'Weekly Test';
+      const marks = Number(document.getElementById('test-marks-input').value);
+      const max_marks = Number(document.getElementById('test-max-input').value) || 100;
+      showLoader(true); await db.from('weekly_tests').insert([{ student_id, test_title, marks, max_marks }]); await loadOwnerData(); toast('✅ Marks Saved!');
+    }
+    async function saveOwnerSettings() {
+      const updates = {
+        coaching_name: document.getElementById('set-coaching-name').value.trim(),
+        teacher_name: document.getElementById('set-teacher-name').value.trim(),
+        owner_email: document.getElementById('set-owner-email').value.trim().toLowerCase(),
+        owner_phone: document.getElementById('set-owner-phone').value.trim().replace(/\D/g, '').slice(-10),
+        upi_id: document.getElementById('set-upi-id').value.trim(),
+        owner_pin: document.getElementById('set-owner-pin').value.trim() || '1234'
+      };
+      showLoader(true); await db.from('app_settings').update(updates).eq('id', 1); appSettings = { ...appSettings, ...updates }; await loadOwnerData(); toast('✅ Settings Saved!');
+    }
+    function switchOwnerTab(tab) {
+      ['home', 'fees', 'attendance', 'events', 'tests'].forEach(t => {
+        document.getElementById('owner-tab-' + t).classList.toggle('hidden', t !== tab);
+        document.getElementById('nav-' + t).classList.toggle('text-blue-900', t === tab);
+        document.getElementById('nav-' + t).classList.toggle('font-bold', t === tab);
+      });
+    }
+
+    async function loadParentPortal() {
+      showLoader(true);
+      const s = currentParentStudent;
+      const today = new Date().toISOString().split('T')[0];
+      if (activeEventCache && activeEventCache.end_date >= today) {
+        document.getElementById('p-active-event-card').classList.remove('hidden');
+        document.getElementById('p-ev-banner-title').textContent = activeEventCache.title;
+        document.getElementById('p-ev-banner-dates').textContent = 'Band: ' + activeEventCache.start_date + ' - ' + activeEventCache.end_date + ' | Open: ' + activeEventCache.reopen_date;
+      }
+      document.getElementById('id-coaching-name').textContent = appSettings.coaching_name;
+      document.getElementById('id-signature-text').textContent = appSettings.teacher_name;
+      document.getElementById('p-student-name').textContent = s.name;
+      document.getElementById('id-reg-no').textContent = s.reg_no || 'SC-01';
+      document.getElementById('id-roll-no').textContent = s.roll_no || '01';
+      document.getElementById('p-student-meta').textContent = s.student_class + ' • ' + s.subject_batch;
+      document.getElementById('id-parent-phone').textContent = '📱 +91 ' + s.parent_phone;
+      if (s.photo_url) { document.getElementById('id-student-photo').src = s.photo_url; document.getElementById('id-student-photo').classList.remove('hidden'); document.getElementById('id-student-initials').classList.add('hidden'); }
+      else { document.getElementById('id-student-initials').textContent = s.name.slice(0,2).toUpperCase(); }
+
+      document.getElementById('p-fee-amount').textContent = '₹' + s.monthly_fee;
+      document.getElementById('p-due-date').textContent = 'Due: ' + s.next_due_date;
+      document.getElementById('p-fee-badge').textContent = s.fee_status;
+      if (s.fee_status === 'Paid') document.getElementById('p-upi-btn').classList.add('hidden');
+
+      const [attRes, hwRes, testRes] = await Promise.all([
+        db.from('attendance').select('*').eq('student_id', s.id).order('att_date', { ascending: false }).limit(15),
+        db.from('homework').select('*').order('created_at', { ascending: false }).limit(25),
+        db.from('weekly_tests').select('*').eq('student_id', s.id).order('test_date', { ascending: false }).limit(6)
+      ]);
+      const atts = attRes.data || [];
+      const todayRec = atts.find(a => a.att_date === today);
+      if (todayRec && todayRec.status === 'A') {
+        document.getElementById('p-today-absent-alert').classList.remove('hidden');
+        document.getElementById('p-absent-date-text').textContent = 'Date: ' + today + ' — ' + s.name + ' aaj class mein ABSENT hai.';
+      }
+      document.getElementById('p-att-pills').innerHTML = atts.map(a => '<div class="px-2.5 py-1 rounded-xl text-center shrink-0 ' + (a.status==='P'?'bg-emerald-50 text-emerald-700':'bg-rose-50 text-rose-700') + '"><p class="text-[10px]">' + a.att_date.slice(5) + '</p><p class="text-xs font-extrabold">' + a.status + '</p></div>').join('');
+      allHomeworks = hwRes.data || [];
+      renderParentHomeworkSection();
+      document.getElementById('p-tests-list').innerHTML = (testRes.data || []).map(t => '<div class="flex justify-between text-xs font-bold p-2 bg-slate-50 rounded-xl"><span>' + t.test_title + '</span><span class="text-blue-900">' + t.marks + '/' + t.max_marks + '</span></div>').join('');
+      showLoader(false);
+    }
+
+    function renderParentHomeworkSection() {
+      const s = currentParentStudent;
+      const tabs = ['My Batch', 'All Batches', 'Morning Batch (6:00 - 9:00 AM)', 'Evening Batch (3:20 - 6:00 PM)', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8'];
+      document.getElementById('p-hw-batch-tabs').innerHTML = tabs.map(t => '<button type="button" onclick="selectParentHwTab(\'' + t + '\')" class="px-3 py-1 rounded-xl text-[11px] font-bold shrink-0 ' + (selectedParentBatchTab===t?'bg-blue-900 text-white':'bg-slate-100 text-slate-600') + '">' + t + '</button>').join('');
+      const list = selectedParentBatchTab === 'My Batch'
+        ? allHomeworks.filter(h => h.subject_batch === 'All Batches' || h.subject_batch === s.subject_batch || h.subject_batch === s.student_class)
+        : allHomeworks.filter(h => h.subject_batch === selectedParentBatchTab);
+      document.getElementById('p-homework-list').innerHTML = list.length === 0 ? '<p class="text-xs text-slate-400">Is batch mein aaj koi homework nahi hai.</p>' : list.map(h => {
+        let att = '';
+        if (h.file_data && h.file_type === 'image') att = '<img src="' + h.file_data + '" class="w-full max-h-56 object-contain rounded-xl mt-2" /><a href="' + h.file_data + '" download="homework.jpg" class="inline-block mt-1 px-3 py-1 bg-blue-900 text-white text-[11px] font-bold rounded-lg">⬇️ Download Image</a>';
+        else if (h.file_data && h.file_type === 'pdf') att = '<a href="' + h.file_data + '" download="homework.pdf" class="inline-block mt-2 px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-xl">📄 Download PDF</a>';
+        return '<div class="p-3 bg-slate-50 border rounded-2xl"><span class="text-[10px] font-extrabold bg-indigo-100 text-blue-900 px-2 py-0.5 rounded">' + h.subject_batch + '</span><p class="text-xs font-semibold mt-1">' + h.title + '</p>' + att + '</div>';
+      }).join('');
+    }
+    function selectParentHwTab(t) { selectedParentBatchTab = t; renderParentHomeworkSection(); }
+    function payViaUPI() { const s = currentParentStudent; window.location.href = 'upi://pay?pa=' + encodeURIComponent(appSettings.upi_id) + '&pn=' + encodeURIComponent(appSettings.coaching_name) + '&am=' + s.monthly_fee + '&cu=INR'; }
+    async function submitReferral() {
+      const friend_name = document.getElementById('ref-friend-name').value.trim();
+      const friend_phone = document.getElementById('ref-friend-phone').value.trim().replace(/\D/g, '').slice(-10);
+      const student_class = document.getElementById('ref-friend-class').value.trim();
+      if (!friend_name || friend_phone.length < 10) return toast('Valid details dalein');
+      showLoader(true); await db.from('enquiries').insert([{ referred_by_name: currentParentStudent.name, friend_name, friend_phone, student_class }]); showLoader(false); toast('🎉 Referral Sent!');
+    }
+  </script>
+</body>
+</html>
+            
